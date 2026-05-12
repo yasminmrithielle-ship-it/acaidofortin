@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#68158c" />
-    <title>Painel Admin | Acai do Fortin</title>
+    <title>Painel Admin | Açaí do Fortin</title>
     <style>
       :root {
         --bg: #08060b;
-        --panel: rgba(24, 14, 32, 0.94);
+        --panel: rgba(24, 14, 32, 0.92);
         --panel-2: rgba(35, 18, 47, 0.9);
         --line: rgba(255, 201, 40, 0.18);
         --text: #fff8ff;
@@ -52,8 +52,8 @@
         width: 100%;
         min-height: 44px;
         border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.2);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.18);
         color: var(--text);
         padding: 10px 12px;
         outline: 0;
@@ -71,7 +71,7 @@
       .shell {
         min-height: 100vh;
         display: grid;
-        grid-template-columns: 280px minmax(0, 1fr);
+        grid-template-columns: 280px 1fr;
       }
 
       .sidebar {
@@ -94,7 +94,7 @@
         width: 64px;
         height: 64px;
         object-fit: cover;
-        border-radius: 8px;
+        border-radius: 18px;
         background: white;
       }
 
@@ -117,7 +117,7 @@
       .nav button,
       .ghost {
         border: 1px solid transparent;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 13px 14px;
         background: transparent;
         color: var(--text);
@@ -144,30 +144,27 @@
         overflow: auto;
       }
 
-      .topbar,
-      .section-head,
-      .row,
-      .actions,
-      .toolbar {
+      .topbar {
         display: flex;
-        gap: 14px;
-      }
-
-      .topbar,
-      .section-head,
-      .row {
         align-items: flex-start;
         justify-content: space-between;
-      }
-
-      .toolbar,
-      .actions {
-        align-items: center;
-        flex-wrap: wrap;
-      }
-
-      .topbar {
+        gap: 16px;
         margin-bottom: 24px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
       }
 
       .eyebrow {
@@ -199,7 +196,7 @@
       .primary,
       .small {
         border: 0;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 12px 16px;
         color: white;
         font-weight: 900;
@@ -217,6 +214,7 @@
       }
 
       .small {
+        border-radius: 12px;
         border: 1px solid var(--line);
         background: var(--panel-2);
       }
@@ -229,7 +227,12 @@
         margin-bottom: 18px;
       }
 
-      .grid,
+      .grid {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 18px;
+      }
+
       .page-columns {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -246,7 +249,7 @@
 
       .card {
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: 24px;
         background: var(--panel);
         box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
         padding: 20px;
@@ -283,8 +286,12 @@
       }
 
       .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
         border-top: 1px solid var(--line);
         padding: 14px 0;
+        gap: 14px;
+        align-items: center;
       }
 
       .row:first-child {
@@ -315,6 +322,13 @@
       .status.danger {
         background: rgba(255, 92, 122, 0.14);
         color: var(--red);
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
       }
 
       .notice {
@@ -385,9 +399,12 @@
         }
 
         .topbar,
-        .section-head,
-        .row {
+        .section-head {
           flex-direction: column;
+        }
+
+        .row {
+          grid-template-columns: 1fr;
         }
       }
     </style>
