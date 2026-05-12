@@ -21,7 +21,7 @@ export function DashboardPage({ token }: Props) {
       <div className="stats-grid">
         <StatCard title="Receita" value={formatCurrency(summary.metrics.revenue)} helper="Total de pedidos entregues" />
         <StatCard title="Pedidos" value={String(summary.metrics.ordersCount)} helper="Volume total na base" />
-        <StatCard title="Clientes" value={String(summary.metrics.customersCount)} helper="Clientes ativos cadastrados" />
+        <StatCard title="Produtos" value={String(summary.metrics.productsCount)} helper="SKUs cadastrados no cardapio" />
         <StatCard title="Pendentes" value={String(summary.metrics.pendingOrders)} helper="Pedidos aguardando ação" />
       </div>
 
@@ -90,4 +90,3 @@ export function DashboardPage({ token }: Props) {
     </section>
   );
 }
-

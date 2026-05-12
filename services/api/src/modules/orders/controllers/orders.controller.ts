@@ -21,8 +21,7 @@ export const ordersController = {
   },
 
   async updateStatus(request: Request, response: Response) {
-    const result = await ordersService.updateStatus(request.params.id, request.body);
+    const result = await ordersService.updateStatus(String(request.params.id), request.body);
     return response.json(result);
   }
 };
-

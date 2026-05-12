@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "../components/app-shell";
-import { CustomersPage } from "../features/customers/customers-page";
 import { DashboardPage } from "../features/dashboard/dashboard-page";
 import { PromotionsPage } from "../features/dashboard/promotions-page";
 import { OrdersPage } from "../features/orders/orders-page";
@@ -20,7 +19,6 @@ export function AppRoutes({ token, onLogout }: Props) {
         <Route index element={<DashboardPage token={token} />} />
         <Route path="/orders" element={<OrdersPage token={token} />} />
         <Route path="/products" element={<ProductsPage token={token} />} />
-        <Route path="/customers" element={<CustomersPage token={token} />} />
         <Route path="/promotions" element={<PromotionsPage token={token} />} />
         <Route path="/reports" element={<ReportsPage token={token} />} />
       </Route>
@@ -28,4 +26,3 @@ export function AppRoutes({ token, onLogout }: Props) {
     </Routes>
   );
 }
-

@@ -1,6 +1,7 @@
 import { CouponType, LoyaltyEntryType, NotificationType, OrderStatus, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
 
 import { AppError } from "../../../lib/errors";
+import { cache } from "../../../lib/cache";
 import { emitOrderUpdated } from "../../../lib/socket";
 import { prisma } from "../../../lib/prisma";
 
@@ -264,6 +265,7 @@ export const ordersService = {
       status: order.status,
       estimatedMinutes: order.estimatedMinutes
     });
+    cache.del("dashboard:summary");
 
     return order;
   },
@@ -341,8 +343,8 @@ export const ordersService = {
       status: order.status,
       estimatedMinutes: order.estimatedMinutes
     });
+    cache.del("dashboard:summary");
 
     return order;
   }
 };
-

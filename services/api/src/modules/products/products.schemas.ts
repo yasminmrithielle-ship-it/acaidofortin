@@ -11,8 +11,10 @@ export const createProductSchema = z.object({
     categoryId: z.string().optional(),
     name: z.string().min(2),
     description: z.string().optional(),
+    accompanimentDetails: z.string().optional(),
     imageUrl: z.string().url().optional(),
     basePrice: z.number().min(0),
+    costPrice: z.number().min(0).optional(),
     sizes: z.array(productOptionSchema).min(1),
     addOns: z.array(productOptionSchema).default([]),
     stockQuantity: z.number().int().min(0),
@@ -29,8 +31,10 @@ export const updateProductSchema = z.object({
     categoryId: z.string().nullable().optional(),
     name: z.string().min(2).optional(),
     description: z.string().optional(),
+    accompanimentDetails: z.string().optional(),
     imageUrl: z.string().url().optional(),
     basePrice: z.number().min(0).optional(),
+    costPrice: z.number().min(0).optional(),
     sizes: z.array(productOptionSchema).optional(),
     addOns: z.array(productOptionSchema).optional(),
     stockQuantity: z.number().int().min(0).optional(),
@@ -46,4 +50,3 @@ export const productsQuerySchema = z.object({
     search: z.string().optional()
   })
 });
-

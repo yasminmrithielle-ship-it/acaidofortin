@@ -26,9 +26,11 @@ export function ProductsPage({ token }: Props) {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    accompanimentDetails: "",
     imageUrl: "",
     categoryId: "",
     basePrice: "18.9",
+    costPrice: "9.9",
     stockQuantity: "20"
   });
 
@@ -53,8 +55,13 @@ export function ProductsPage({ token }: Props) {
     event.preventDefault();
 
     const payload = {
-      ...form,
+      name: form.name,
+      description: form.description,
+      accompanimentDetails: form.accompanimentDetails,
+      ...(form.imageUrl.trim() ? { imageUrl: form.imageUrl.trim() } : {}),
+      ...(form.categoryId ? { categoryId: form.categoryId } : {}),
       basePrice: Number(form.basePrice),
+      costPrice: Number(form.costPrice),
       stockQuantity: Number(form.stockQuantity),
       sizes: defaultSizes,
       addOns: defaultAddOns,
@@ -66,9 +73,11 @@ export function ProductsPage({ token }: Props) {
     setForm({
       name: "",
       description: "",
+      accompanimentDetails: "",
       imageUrl: "",
       categoryId: "",
       basePrice: "18.9",
+      costPrice: "9.9",
       stockQuantity: "20"
     });
   }
@@ -92,12 +101,13 @@ export function ProductsPage({ token }: Props) {
         <article className="panel-card">
           <div className="section-head">
             <h2>Novo produto</h2>
-            <span>Sizes e adicionais padrão Fortin</span>
+            <span>Tamanhos e adicionais padrao Fortin</span>
           </div>
 
           <form className="form-grid" onSubmit={handleCreateProduct}>
             <input placeholder="Nome do produto" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
-            <textarea placeholder="Descrição" value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} />
+            <textarea placeholder="Descricao do produto para aparecer no app" value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} />
+            <textarea placeholder="Detalhes do que ira no acompanhamento de cada acai" value={form.accompanimentDetails} onChange={(event) => setForm((current) => ({ ...current, accompanimentDetails: event.target.value }))} />
             <input placeholder="URL da imagem" value={form.imageUrl} onChange={(event) => setForm((current) => ({ ...current, imageUrl: event.target.value }))} />
             <select value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
               <option value="">Categoria</option>
@@ -107,7 +117,9 @@ export function ProductsPage({ token }: Props) {
                 </option>
               ))}
             </select>
-            <input placeholder="Preço base" value={form.basePrice} onChange={(event) => setForm((current) => ({ ...current, basePrice: event.target.value }))} />
+            <input placeholder="Preco de venda do produto" value={form.basePrice} onChange={(event) => setForm((current) => ({ ...current, basePrice: event.target.value }))} />
+            <input placeholder="Preco de custo do produto" value={form.costPrice} onChange={(event) => setForm((current) => ({ ...current, costPrice: event.target.value }))} />
+            <input disabled readOnly placeholder="Lucro do produto" value={formatCurrency(Math.max(Number(form.basePrice) - Number(form.costPrice), 0) || 0)} />
             <input placeholder="Estoque" value={form.stockQuantity} onChange={(event) => setForm((current) => ({ ...current, stockQuantity: event.target.value }))} />
             <button className="primary-button" type="submit">
               Salvar produto
@@ -149,8 +161,13 @@ export function ProductsPage({ token }: Props) {
               <div>
                 <strong>{product.name}</strong>
                 <p>{product.category?.name ?? "Sem categoria"}</p>
+                {product.accompanimentDetails ? <p>{product.accompanimentDetails}</p> : null}
               </div>
-              <p>{formatCurrency(Number(product.basePrice))}</p>
+              <div className="product-metrics">
+                <p>Venda: {formatCurrency(Number(product.basePrice))}</p>
+                <p>Custo: {formatCurrency(Number(product.costPrice ?? 0))}</p>
+                <p>Lucro: {formatCurrency(Math.max(Number(product.basePrice) - Number(product.costPrice ?? 0), 0))}</p>
+              </div>
               <p>Estoque: {product.stockQuantity}</p>
             </div>
           ))}
@@ -159,4 +176,3 @@ export function ProductsPage({ token }: Props) {
     </section>
   );
 }
-

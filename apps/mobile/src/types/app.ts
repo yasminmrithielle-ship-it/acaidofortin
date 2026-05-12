@@ -20,9 +20,11 @@ export type Product = {
   id: string;
   name: string;
   description?: string;
+  accompanimentDetails?: string;
   imageUrl?: string;
   imageAsset?: ImageSourcePropType;
   basePrice: number;
+  costPrice?: number;
   sizes: ProductOption[];
   addOns: ProductOption[];
   stockQuantity: number;
@@ -40,6 +42,17 @@ export type Category = {
   description?: string;
   imageUrl?: string;
   products: Product[];
+};
+
+export type CouponItem = {
+  id: string;
+  code: string;
+  description?: string;
+  discountType: "PERCENT" | "FIXED" | "DELIVERY";
+  value: number;
+  minOrderValue?: number | null;
+  maxDiscount?: number | null;
+  endsAt?: string | null;
 };
 
 export type CartItem = {
@@ -102,4 +115,5 @@ export type CatalogPayload = {
   banners: BannerItem[];
   categories: Category[];
   products: Product[];
+  coupons: CouponItem[];
 };

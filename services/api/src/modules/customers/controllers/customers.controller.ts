@@ -24,8 +24,7 @@ export const customersController = {
   },
 
   async toggleFavorite(request: Request, response: Response) {
-    const result = await customersService.toggleFavorite(request.user!.sub, request.params.productId);
+    const result = await customersService.toggleFavorite(request.user!.sub, String(request.params.productId));
     return response.json(result);
   }
 };
-

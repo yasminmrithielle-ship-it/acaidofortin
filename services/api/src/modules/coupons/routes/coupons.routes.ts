@@ -8,7 +8,7 @@ import { createCouponSchema, validateCouponSchema } from "../coupons.schemas";
 
 export const couponsRoutes = Router();
 
+couponsRoutes.get("/public", couponsController.listPublic);
 couponsRoutes.get("/", authenticate([UserRole.ADMIN]), couponsController.list);
 couponsRoutes.post("/", authenticate([UserRole.ADMIN]), validateRequest(createCouponSchema), couponsController.create);
 couponsRoutes.post("/validate", validateRequest(validateCouponSchema), couponsController.validate);
-

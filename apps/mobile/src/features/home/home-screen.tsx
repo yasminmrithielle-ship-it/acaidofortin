@@ -19,6 +19,10 @@ export function HomeScreen({ onOpenProduct }: Props) {
   const { palette } = useAppTheme();
   const entrance = useRef(new Animated.Value(0)).current;
   const featured = catalog.products.filter((product) => product.isFeatured);
+  const coupons = catalog.coupons ?? [];
+  const couponMessage = coupons.length
+    ? coupons.map((coupon) => `${coupon.code}: ${coupon.description ?? "Cupom ativo"}`).join("\n")
+    : "Use FORTIN10 no carrinho para aplicar desconto.";
 
   useEffect(() => {
     Animated.timing(entrance, {
@@ -71,7 +75,7 @@ export function HomeScreen({ onOpenProduct }: Props) {
           <Text style={[styles.quickActionLabel, { color: palette.text }]}>Chat e suporte</Text>
         </Pressable>
         <Pressable
-          onPress={() => Alert.alert("Cupom disponivel", "Use FORTIN10 no carrinho para aplicar desconto.")}
+          onPress={() => Alert.alert("Cupons disponiveis", couponMessage)}
           style={[styles.quickAction, { backgroundColor: palette.card }]}
         >
           <MaterialCommunityIcons color={palette.accentNeon} name="ticket-percent-outline" size={22} />

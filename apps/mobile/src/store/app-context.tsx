@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
-import { Linking } from "react-native";
+import { AppState, Linking } from "react-native";
 import { PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
 
 import { createOrder, fetchCatalog, fetchNotifications, fetchOrders, fetchProfile, registerUser, signIn, socialSignIn, validateCoupon } from "../services/api";
@@ -39,11 +39,16 @@ const STORAGE_KEYS = {
 };
 
 const GUEST_TOKEN = "fortin-guest-order-token";
+const DEMO_CUSTOMER = {
+  email: "cliente@fortin.com",
+  password: "Cliente@123"
+};
 
 const emptyCatalog: CatalogPayload = {
   banners: [],
   categories: [],
-  products: []
+  products: [],
+  coupons: []
 };
 
 const AppContext = createContext<AppContextValue>({} as AppContextValue);
@@ -73,7 +78,13 @@ export function AppProvider({ children }: PropsWithChildren) {
         AsyncStorage.getItem(STORAGE_KEYS.cart)
       ]);
 
-      const authToken = storedToken ?? GUEST_TOKEN;
+      let authToken = storedToken ?? GUEST_TOKEN;
+
+      if (!storedToken || storedToken.startsWith("fortin-")) {
+        const demoSession = await signIn(DEMO_CUSTOMER.email, DEMO_CUSTOMER.password);
+        authToken = demoSession.token;
+        await AsyncStorage.setItem(STORAGE_KEYS.token, authToken);
+      }
 
       setToken(authToken);
       if (storedCart) setCart(JSON.parse(storedCart));
@@ -87,6 +98,16 @@ export function AppProvider({ children }: PropsWithChildren) {
 
     bootstrap().catch(() => setReady(true));
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        refreshData().catch(() => undefined);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [token]);
 
   useEffect(() => {
     AsyncStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart)).catch(() => undefined);

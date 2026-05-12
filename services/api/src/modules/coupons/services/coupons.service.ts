@@ -3,7 +3,9 @@ import { CouponType } from "@prisma/client";
 import { AppError } from "../../../lib/errors";
 import { prisma } from "../../../lib/prisma";
 
-function ensureCouponAvailable(coupon: Awaited<ReturnType<typeof prisma.coupon.findUnique>>) {
+function ensureCouponAvailable(
+  coupon: Awaited<ReturnType<typeof prisma.coupon.findUnique>>
+): asserts coupon is NonNullable<Awaited<ReturnType<typeof prisma.coupon.findUnique>>> {
   if (!coupon || !coupon.isActive) {
     throw new AppError(404, "Cupom inválido");
   }
@@ -47,6 +49,41 @@ export const couponsService = {
     return prisma.coupon.findMany({
       orderBy: { createdAt: "desc" }
     });
+  },
+
+  async listPublic() {
+    const now = new Date();
+
+    const coupons = await prisma.coupon.findMany({
+      where: {
+        isActive: true,
+        AND: [
+          {
+            OR: [{ startsAt: null }, { startsAt: { lte: now } }]
+          },
+          {
+            OR: [{ endsAt: null }, { endsAt: { gte: now } }]
+          }
+        ]
+      },
+      select: {
+        id: true,
+        code: true,
+        description: true,
+        discountType: true,
+        value: true,
+        minOrderValue: true,
+        maxDiscount: true,
+        usageLimit: true,
+        usageCount: true,
+        endsAt: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return coupons
+      .filter((coupon) => !coupon.usageLimit || coupon.usageCount < coupon.usageLimit)
+      .map(({ usageCount, usageLimit, ...coupon }) => coupon);
   },
 
   async create(data: {
@@ -103,4 +140,3 @@ export const couponsService = {
     };
   }
 };
-

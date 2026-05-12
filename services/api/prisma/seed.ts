@@ -96,13 +96,18 @@ async function main() {
 
   const product = await prisma.product.upsert({
     where: { slug: "fortin-signature" },
-    update: {},
+    update: {
+      costPrice: 10.5,
+      accompanimentDetails: "Acai, creme ninho, banana, granola crocante e leite em po."
+    },
     create: {
       name: "Fortin Signature",
       slug: "fortin-signature",
       description: "Açaí artesanal com creme ninho, banana e granola crocante.",
+      accompanimentDetails: "Acai, creme ninho, banana, granola crocante e leite em po.",
       imageUrl: "https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1200&q=80",
       basePrice: 18.9,
+      costPrice: 10.5,
       sizes: sizeOptions,
       addOns: addOnOptions,
       stockQuantity: 80,
@@ -113,13 +118,18 @@ async function main() {
 
   await prisma.product.upsert({
     where: { slug: "fit-purple" },
-    update: {},
+    update: {
+      costPrice: 12.9,
+      accompanimentDetails: "Acai zero acucar, whey de baunilha, morango e granola sem acucar."
+    },
     create: {
       name: "Fit Purple",
       slug: "fit-purple",
       description: "Blend zero açúcar com whey de baunilha e morangos.",
+      accompanimentDetails: "Acai zero acucar, whey de baunilha, morango e granola sem acucar.",
       imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
       basePrice: 22.9,
+      costPrice: 12.9,
       sizes: sizeOptions,
       addOns: addOnOptions,
       stockQuantity: 45,

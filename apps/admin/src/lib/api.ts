@@ -4,6 +4,8 @@ const TOKEN_KEY = "fortin_admin_token";
 export type DashboardSummary = {
   metrics: {
     revenue: number;
+    profit: number;
+    productCost: number;
     ordersCount: number;
     customersCount: number;
     productsCount: number;
@@ -12,6 +14,8 @@ export type DashboardSummary = {
   recentOrders: Array<Record<string, any>>;
   lowStockProducts: Array<Record<string, any>>;
   topProducts: Array<{ name: string; quantity: number }>;
+  paymentBreakdown: Array<{ method: string; ordersCount: number; revenue: number }>;
+  revenueByDate: Array<{ date: string; ordersCount: number; revenue: number; profit: number }>;
 };
 
 export type OrderRecord = {
@@ -26,10 +30,27 @@ export type OrderRecord = {
     name: string;
     phone?: string;
   };
+  address?: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+  } | null;
   items: Array<{
     id: string;
     productName: string;
     quantity: number;
+    unitPrice?: number | string;
+    selectedSize?: {
+      name?: string;
+      price?: number;
+    };
+    selectedAddOns?: Array<{
+      name?: string;
+      price?: number;
+    }>;
+    notes?: string;
   }>;
 };
 
@@ -159,6 +180,8 @@ export async function createBanner(token: string, payload: Record<string, any>) 
 export const fallbackDashboard: DashboardSummary = {
   metrics: {
     revenue: 8420.5,
+    profit: 3918.7,
+    productCost: 2850.35,
     ordersCount: 138,
     customersCount: 94,
     productsCount: 18,
@@ -184,6 +207,15 @@ export const fallbackDashboard: DashboardSummary = {
     { name: "Fortin Signature", quantity: 39 },
     { name: "Fit Purple", quantity: 24 },
     { name: "Morango Supreme", quantity: 19 }
+  ],
+  paymentBreakdown: [
+    { method: "PIX", ordersCount: 84, revenue: 5220.3 },
+    { method: "CARD", ordersCount: 39, revenue: 2360.1 },
+    { method: "CASH", ordersCount: 15, revenue: 840.1 }
+  ],
+  revenueByDate: [
+    { date: new Date().toISOString().slice(0, 10), ordersCount: 18, revenue: 1280.4, profit: 612.8 },
+    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), ordersCount: 14, revenue: 980.2, profit: 431.5 }
   ]
 };
 
@@ -204,7 +236,10 @@ export const fallbackOrders: OrderRecord[] = [
       {
         id: "i1",
         productName: "Fortin Signature",
-        quantity: 1
+        quantity: 1,
+        unitPrice: 34.9,
+        selectedSize: { name: "700ml", price: 31.9 },
+        selectedAddOns: [{ name: "Granola artesanal", price: 3.5 }]
       }
     ]
   }

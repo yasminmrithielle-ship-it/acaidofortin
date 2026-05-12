@@ -9,8 +9,7 @@ export const reviewsController = {
   },
 
   async listByProduct(request: Request, response: Response) {
-    const result = await reviewsService.listByProduct(request.params.productId);
+    const result = await reviewsService.listByProduct(String(request.params.productId));
     return response.json(result);
   }
 };
-

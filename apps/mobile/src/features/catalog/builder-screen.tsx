@@ -41,6 +41,12 @@ export function BuilderScreen({ product, onBack }: Props) {
 
       <Text style={[styles.name, { color: palette.text }]}>{product.name}</Text>
       <Text style={[styles.description, { color: palette.muted }]}>{product.description}</Text>
+      {product.accompanimentDetails ? (
+        <View style={[styles.accompanimentBox, { backgroundColor: palette.card }]}>
+          <Text style={[styles.sectionTitle, { color: palette.text }]}>Acompanhamentos</Text>
+          <Text style={[styles.description, { color: palette.muted }]}>{product.accompanimentDetails}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: palette.text }]}>Escolha o tamanho</Text>
@@ -142,6 +148,11 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: 10
+  },
+  accompanimentBox: {
+    borderRadius: 22,
+    padding: 16,
+    gap: 8
   },
   sectionTitle: {
     fontFamily: "Sora_600SemiBold",

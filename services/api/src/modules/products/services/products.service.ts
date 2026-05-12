@@ -77,8 +77,10 @@ export const productsService = {
     categoryId?: string;
     name: string;
     description?: string;
+    accompanimentDetails?: string;
     imageUrl?: string;
     basePrice: number;
+    costPrice?: number;
     sizes: Array<{ id: string; name: string; price: number }>;
     addOns: Array<{ id: string; name: string; price: number }>;
     stockQuantity: number;
@@ -100,8 +102,10 @@ export const productsService = {
     categoryId?: string | null;
     name?: string;
     description?: string;
+    accompanimentDetails?: string;
     imageUrl?: string;
     basePrice?: number;
+    costPrice?: number;
     sizes?: Array<{ id: string; name: string; price: number }>;
     addOns?: Array<{ id: string; name: string; price: number }>;
     stockQuantity?: number;
@@ -120,4 +124,3 @@ export const productsService = {
     return product;
   }
 };
-

@@ -38,7 +38,7 @@ export default function App() {
           <img alt="Açaí do Fortin" className="login-logo" src="/assets/fortin-logo.jpeg" />
           <span className="eyebrow">Painel administrativo</span>
           <h1>Açaí do Fortin</h1>
-          <p>Controle pedidos, promoções, estoque, clientes e relatórios em uma única operação.</p>
+          <p>Controle pedidos, promoções, estoque e relatórios em uma única operação.</p>
           <input value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
           <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
           {error ? <span className="error-text">{error}</span> : null}

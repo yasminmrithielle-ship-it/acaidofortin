@@ -13,6 +13,5 @@ const statusMap: Record<string, string> = {
 };
 
 export function StatusPill({ label }: Props) {
-  return <span className={statusMap[label] ?? "status"}>{label.replaceAll("_", " ")}</span>;
+  return <span className={statusMap[label] ?? "status"}>{label.split("_").join(" ")}</span>;
 }
-

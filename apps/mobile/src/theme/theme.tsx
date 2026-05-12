@@ -37,7 +37,7 @@ function buildNavigationTheme(scheme: "dark" | "light", palette: AppPalette): Th
 
 export function AppThemeProvider({ children }: PropsWithChildren) {
   const systemScheme: ColorSchemeName = useColorScheme();
-  const scheme = systemScheme === "light" ? "light" : "dark";
+  const scheme: "dark" | "light" = systemScheme === "light" ? "light" : "dark";
 
   const value = useMemo(() => {
     const palette = palettes[scheme];
@@ -54,4 +54,3 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
 export function useAppTheme() {
   return useContext(ThemeContext);
 }
-

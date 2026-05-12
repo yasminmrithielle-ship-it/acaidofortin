@@ -14,7 +14,7 @@ export const productsController = {
   },
 
   async getById(request: Request, response: Response) {
-    const result = await productsService.getById(request.params.id);
+    const result = await productsService.getById(String(request.params.id));
     return response.json(result);
   },
 
@@ -24,8 +24,7 @@ export const productsController = {
   },
 
   async update(request: Request, response: Response) {
-    const result = await productsService.update(request.params.id, request.body);
+    const result = await productsService.update(String(request.params.id), request.body);
     return response.json(result);
   }
 };
-

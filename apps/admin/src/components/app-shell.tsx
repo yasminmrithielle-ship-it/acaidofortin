@@ -1,4 +1,4 @@
-import { Bell, ChartColumnBig, LayoutDashboard, LogOut, Percent, ShoppingBasket, Users } from "lucide-react";
+import { ChartColumnBig, LayoutDashboard, LogOut, Package, Percent, ShoppingBasket } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 type Props = {
@@ -8,8 +8,7 @@ type Props = {
 const navigation = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/orders", label: "Pedidos", icon: ShoppingBasket },
-  { to: "/products", label: "Produtos", icon: Bell },
-  { to: "/customers", label: "Clientes", icon: Users },
+  { to: "/products", label: "Produtos", icon: Package },
   { to: "/promotions", label: "Promoções", icon: Percent },
   { to: "/reports", label: "Relatórios", icon: ChartColumnBig }
 ];

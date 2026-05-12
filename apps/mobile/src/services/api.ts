@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { fortinLogo, fortinProduct } from "../theme/brand-assets";
-import { AppNotification, BannerItem, CatalogPayload, OrderRecord, Product, Profile } from "../types/app";
+import { AppNotification, BannerItem, CatalogPayload, CouponItem, OrderRecord, Product, Profile } from "../types/app";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3333/api";
 const CATALOG_CACHE_KEY = "fortin_catalog_cache";
@@ -24,9 +24,11 @@ const fallbackProducts: Product[] = [
     id: "fortin-signature",
     name: "Fortin Signature",
     description: "Açaí artesanal com creme ninho, banana e granola crocante.",
+    accompanimentDetails: "Acai, creme ninho, banana, granola crocante e leite em po.",
     imageUrl: "https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1200&q=80",
     imageAsset: fortinProduct,
     basePrice: 18.9,
+    costPrice: 10.5,
     sizes: sizeOptions,
     addOns: addOnOptions,
     stockQuantity: 40,
@@ -38,9 +40,11 @@ const fallbackProducts: Product[] = [
     id: "fit-purple",
     name: "Fit Purple",
     description: "Blend zero açúcar com morango e whey de baunilha.",
+    accompanimentDetails: "Acai zero acucar, whey de baunilha, morango e granola sem acucar.",
     imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
     imageAsset: fortinProduct,
     basePrice: 22.9,
+    costPrice: 12.9,
     sizes: sizeOptions,
     addOns: addOnOptions,
     stockQuantity: 22,
@@ -52,9 +56,11 @@ const fallbackProducts: Product[] = [
     id: "morango-supreme",
     name: "Morango Supreme",
     description: "Camadas de açaí premium com calda de morango e leite em pó.",
+    accompanimentDetails: "Acai, morango, calda artesanal, leite em po e granola.",
     imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1200&q=80",
     imageAsset: fortinProduct,
     basePrice: 20.9,
+    costPrice: 11.8,
     sizes: sizeOptions,
     addOns: addOnOptions,
     stockQuantity: 31,
@@ -103,7 +109,18 @@ const fallbackCatalog: CatalogPayload = {
       products: fallbackProducts.filter((product) => product.categoryId === "especiais")
     }
   ],
-  products: fallbackProducts
+  products: fallbackProducts,
+  coupons: [
+    {
+      id: "coupon-fortin10",
+      code: "FORTIN10",
+      description: "10% OFF na primeira compra",
+      discountType: "PERCENT",
+      value: 10,
+      minOrderValue: 25,
+      maxDiscount: 12
+    }
+  ]
 };
 
 const fallbackProfile: Profile = {
@@ -258,10 +275,11 @@ export async function socialSignIn(provider: "google" | "apple") {
 
 export async function fetchCatalog() {
   try {
-    const [banners, categories, products] = await Promise.all([
+    const [banners, categories, products, coupons] = await Promise.all([
       request<BannerItem[]>("/banners"),
       request<any[]>("/categories"),
-      request<any[]>("/products")
+      request<any[]>("/products"),
+      request<any[]>("/coupons/public")
     ]);
 
     const normalized: CatalogPayload = {
@@ -271,6 +289,8 @@ export async function fetchCatalog() {
         products: (category.products ?? []).map((product: any) => ({
           ...product,
           basePrice: Number(product.basePrice),
+          costPrice: Number(product.costPrice ?? 0),
+          accompanimentDetails: product.accompanimentDetails ?? "",
           sizes: product.sizes ?? [],
           addOns: product.addOns ?? []
         }))
@@ -278,9 +298,17 @@ export async function fetchCatalog() {
       products: products.map((product: any) => ({
         ...product,
         basePrice: Number(product.basePrice),
+        costPrice: Number(product.costPrice ?? 0),
+        accompanimentDetails: product.accompanimentDetails ?? "",
         sizes: product.sizes ?? [],
         addOns: product.addOns ?? []
-      }))
+      })),
+      coupons: coupons.map((coupon: any) => ({
+        ...coupon,
+        value: Number(coupon.value),
+        minOrderValue: coupon.minOrderValue ? Number(coupon.minOrderValue) : null,
+        maxDiscount: coupon.maxDiscount ? Number(coupon.maxDiscount) : null
+      })) as CouponItem[]
     };
 
     await setCachedCatalog(normalized);

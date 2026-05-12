@@ -134,6 +134,11 @@ select {
   outline: none;
 }
 
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 textarea {
   min-height: 88px;
   resize: vertical;
@@ -322,6 +327,41 @@ textarea {
   gap: 6px;
 }
 
+.order-actions,
+.sound-button,
+.icon-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-actions {
+  margin-top: 16px;
+}
+
+.order-actions button {
+  flex: 1;
+  justify-content: center;
+}
+
+.product-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.product-metrics {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.report-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) repeat(3, auto);
+}
+
 .status {
   padding: 8px 12px;
   border-radius: 999px;
@@ -417,11 +457,17 @@ textarea {
   .topbar,
   .section-head,
   .list-row,
+  .product-card,
   .order-card-head,
   .inline-form,
   .bar-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .product-card,
+  .report-row {
+    grid-template-columns: 1fr;
   }
 
   .stats-grid,

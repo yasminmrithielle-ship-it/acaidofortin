@@ -12,3 +12,8 @@ export function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+export function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short"
+  }).format(new Date(`${value}T00:00:00`));
+}

@@ -19,8 +19,7 @@ export const categoriesController = {
   },
 
   async update(request: Request, response: Response) {
-    const result = await categoriesService.update(request.params.id, request.body);
+    const result = await categoriesService.update(String(request.params.id), request.body);
     return response.json(result);
   }
 };
-
