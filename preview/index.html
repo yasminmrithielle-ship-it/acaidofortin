@@ -551,6 +551,14 @@
               </div>
             </div>
 
+            <div class="section" id="panelPromotionsSection" hidden>
+              <div class="section-head">
+                <h2>Promocoes do painel</h2>
+                <span class="muted">Atualizadas pelo admin</span>
+              </div>
+              <div class="grid" id="panelPromotionsList"></div>
+            </div>
+
             <div class="section">
               <div class="section-head">
                 <h2>Mais pedidos</h2>
@@ -697,7 +705,29 @@
     </main>
 
     <script>
+      const PANEL_PRODUCTS_KEY = "fortin_panel_products";
+      const PANEL_BANNERS_KEY = "fortin_panel_banners";
+
+      function loadPanelProducts() {
+        const raw = localStorage.getItem(PANEL_PRODUCTS_KEY);
+        if (!raw) return [];
+
+        return JSON.parse(raw).map(product => ({
+          name: product.name,
+          category: "Painel",
+          desc: product.details || "Produto cadastrado no painel.",
+          price: Number(product.price || 0),
+          imageUrl: product.imageUrl || "assets/fortin-product.jpeg"
+        }));
+      }
+
+      function loadPanelBanners() {
+        const raw = localStorage.getItem(PANEL_BANNERS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }
+
       const products = [
+        ...loadPanelProducts(),
         { name: "Fortin Signature", category: "Tradicionais", desc: "Açaí, creme ninho, banana e granola.", price: 31.9 },
         { name: "Fit Purple", category: "Zero açúcar", desc: "Zero açúcar, whey e morango.", price: 34.9 },
         { name: "Morango Supreme", category: "Especiais", desc: "Calda artesanal e leite em pó.", price: 29.9 }
@@ -775,7 +805,7 @@
       function renderProduct(product) {
         return `
           <article class="card product">
-            <img class="thumb" src="assets/fortin-product.jpeg" alt="${product.name}" />
+            <img class="thumb" src="${product.imageUrl || "assets/fortin-product.jpeg"}" alt="${product.name}" />
             <div>
               <strong>${product.name}</strong>
               <p>${product.desc}</p>
@@ -792,6 +822,23 @@
         document.getElementById("featuredList").innerHTML = products.slice(0, 2).map(renderProduct).join("");
         document.getElementById("catalogList").innerHTML = filteredProducts().map(renderProduct).join("") || `<div class="card"><strong>Nenhum item encontrado</strong><p>Tente outra busca ou categoria.</p></div>`;
         document.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("active", button.dataset.category === selectedCategory));
+      }
+
+      function renderPanelPromotions() {
+        const banners = loadPanelBanners();
+        const section = document.getElementById("panelPromotionsSection");
+        const list = document.getElementById("panelPromotionsList");
+        section.hidden = banners.length === 0;
+        list.innerHTML = banners.map(banner => `
+          <article class="card product">
+            <img class="thumb" src="${banner.imageUrl || "assets/fortin-product.jpeg"}" alt="${banner.title}" />
+            <div>
+              <strong>${banner.title}</strong>
+              <p>${banner.subtitle || "Promocao ativa no app."}</p>
+              <button class="small-btn" type="button" data-screen-target="catalogo">Ver produtos</button>
+            </div>
+          </article>
+        `).join("");
       }
 
       function renderBuilder() {
@@ -964,6 +1011,7 @@
       }
 
       renderProducts();
+      renderPanelPromotions();
       renderBuilder();
       renderCart();
       renderOrders();

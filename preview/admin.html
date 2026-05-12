@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#68158c" />
-    <title>Painel Admin | Açaí do Fortin</title>
+    <title>Painel Admin | Acai do Fortin</title>
     <style>
       :root {
         --bg: #08060b;
-        --panel: rgba(24, 14, 32, 0.92);
+        --panel: rgba(24, 14, 32, 0.94);
         --panel-2: rgba(35, 18, 47, 0.9);
         --line: rgba(255, 201, 40, 0.18);
         --text: #fff8ff;
@@ -17,6 +17,7 @@
         --gold: #ffc928;
         --green: #5bc537;
         --red: #ff5c7a;
+        --blue: #7ecbff;
       }
 
       * {
@@ -36,7 +37,8 @@
 
       button,
       input,
-      select {
+      select,
+      textarea {
         font: inherit;
       }
 
@@ -44,10 +46,32 @@
         cursor: pointer;
       }
 
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--text);
+        padding: 10px 12px;
+        outline: 0;
+      }
+
+      textarea {
+        min-height: 78px;
+        resize: vertical;
+      }
+
+      input[readonly] {
+        opacity: 0.72;
+      }
+
       .shell {
         min-height: 100vh;
         display: grid;
-        grid-template-columns: 280px 1fr;
+        grid-template-columns: 280px minmax(0, 1fr);
       }
 
       .sidebar {
@@ -70,7 +94,7 @@
         width: 64px;
         height: 64px;
         object-fit: cover;
-        border-radius: 18px;
+        border-radius: 8px;
         background: white;
       }
 
@@ -80,7 +104,8 @@
       }
 
       .brand span,
-      .muted {
+      .muted,
+      .field-label {
         color: var(--muted);
       }
 
@@ -92,7 +117,7 @@
       .nav button,
       .ghost {
         border: 1px solid transparent;
-        border-radius: 16px;
+        border-radius: 12px;
         padding: 13px 14px;
         background: transparent;
         color: var(--text);
@@ -119,11 +144,29 @@
         overflow: auto;
       }
 
-      .topbar {
+      .topbar,
+      .section-head,
+      .row,
+      .actions,
+      .toolbar {
         display: flex;
+        gap: 14px;
+      }
+
+      .topbar,
+      .section-head,
+      .row {
         align-items: flex-start;
         justify-content: space-between;
-        gap: 16px;
+      }
+
+      .toolbar,
+      .actions {
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .topbar {
         margin-bottom: 24px;
       }
 
@@ -148,39 +191,48 @@
         font-size: clamp(28px, 4vw, 48px);
       }
 
-      .pill {
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 11px 15px;
-        background: rgba(255, 201, 40, 0.1);
-        color: var(--gold);
+      h2 {
+        margin-bottom: 0;
+      }
+
+      .pill,
+      .primary,
+      .small {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: white;
         font-weight: 900;
       }
 
-      .stats {
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 201, 40, 0.1);
+        color: var(--gold);
+      }
+
+      .primary {
+        background: linear-gradient(135deg, var(--purple), var(--gold));
+      }
+
+      .small {
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+      }
+
+      .stats,
+      .report-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(160px, 1fr));
         gap: 14px;
         margin-bottom: 18px;
       }
 
-      .card {
-        border: 1px solid var(--line);
-        border-radius: 24px;
-        background: var(--panel);
-        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
-        padding: 20px;
-      }
-
-      .stat strong {
-        display: block;
-        font-size: 30px;
-        margin-bottom: 8px;
-      }
-
-      .grid {
+      .grid,
+      .page-columns {
         display: grid;
-        grid-template-columns: 1.35fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
       }
 
@@ -192,37 +244,45 @@
         display: block;
       }
 
-      .toolbar {
-        display: flex;
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+        padding: 20px;
+      }
+
+      .stat strong,
+      .report-item strong {
+        display: block;
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .product-form {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr 0.8fr;
         gap: 10px;
         margin-bottom: 14px;
-        flex-wrap: wrap;
       }
 
-      input,
-      select {
-        min-height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: rgba(0, 0, 0, 0.18);
-        color: var(--text);
-        padding: 0 14px;
+      .full {
+        grid-column: 1 / -1;
       }
 
-      .primary {
-        border: 0;
-        border-radius: 14px;
-        padding: 12px 16px;
-        background: linear-gradient(135deg, var(--purple), var(--gold));
-        color: white;
-        font-weight: 900;
+      .field-label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 800;
       }
 
       .row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 14px;
-        align-items: center;
         border-top: 1px solid var(--line);
         padding: 14px 0;
       }
@@ -239,6 +299,7 @@
         color: var(--gold);
         font-size: 12px;
         font-weight: 900;
+        white-space: nowrap;
       }
 
       .status.ok {
@@ -246,32 +307,14 @@
         color: var(--green);
       }
 
+      .status.delivery {
+        background: rgba(126, 203, 255, 0.14);
+        color: var(--blue);
+      }
+
       .status.danger {
         background: rgba(255, 92, 122, 0.14);
         color: var(--red);
-      }
-
-      .actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-
-      .small {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 9px 11px;
-        background: var(--panel-2);
-        color: var(--text);
-        font-weight: 800;
-      }
-
-      .product-form {
-        display: grid;
-        grid-template-columns: 1.2fr 0.7fr 0.6fr auto;
-        gap: 10px;
-        margin-bottom: 14px;
       }
 
       .notice {
@@ -280,7 +323,7 @@
         bottom: 22px;
         max-width: 360px;
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 8px;
         padding: 14px 16px;
         background: rgba(16, 8, 22, 0.96);
         color: var(--text);
@@ -289,6 +332,30 @@
       }
 
       .notice[hidden] {
+        display: none;
+      }
+
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+
+        #printArea,
+        #printArea * {
+          visibility: visible;
+        }
+
+        #printArea {
+          position: absolute;
+          inset: 0;
+          display: block !important;
+          color: #111;
+          background: white;
+          padding: 24px;
+        }
+      }
+
+      #printArea {
         display: none;
       }
 
@@ -310,9 +377,17 @@
         }
 
         .stats,
+        .report-grid,
         .grid,
+        .page-columns,
         .product-form {
           grid-template-columns: 1fr;
+        }
+
+        .topbar,
+        .section-head,
+        .row {
+          flex-direction: column;
         }
       }
     </style>
@@ -321,9 +396,9 @@
     <main class="shell">
       <aside class="sidebar">
         <div class="brand">
-          <img src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+          <img src="assets/fortin-logo.jpeg" alt="Logo Acai do Fortin" />
           <div>
-            <strong>Açaí do Fortin</strong>
+            <strong>Acai do Fortin</strong>
             <span>Painel admin</span>
           </div>
         </div>
@@ -332,9 +407,8 @@
           <button class="active" type="button" data-section="dashboard">Dashboard</button>
           <button type="button" data-section="pedidos">Pedidos</button>
           <button type="button" data-section="produtos">Produtos</button>
-          <button type="button" data-section="clientes">Clientes</button>
-          <button type="button" data-section="cupons">Cupons</button>
-          <button type="button" data-section="relatorios">Relatórios</button>
+          <button type="button" data-section="promocoes">Promocoes</button>
+          <button type="button" data-section="relatorios">Relatorios</button>
         </nav>
 
         <button class="ghost logout" type="button" id="logoutButton">Sair do painel</button>
@@ -343,29 +417,36 @@
       <section class="content">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Operação em tempo real</p>
-            <h1>Gestão do delivery</h1>
+            <p class="eyebrow">Operacao em tempo real</p>
+            <h1>Gestao do delivery</h1>
           </div>
-          <button class="pill" type="button" id="syncButton">Sincronizar agora</button>
+          <div class="actions">
+            <button class="pill" type="button" id="soundButton">Ativar toque</button>
+            <button class="pill" type="button" id="syncButton">Sincronizar agora</button>
+          </div>
         </header>
 
         <section class="section active" data-page="dashboard">
           <div class="stats">
-            <article class="card stat"><span class="muted">Receita hoje</span><strong>R$ 1.842</strong><p class="muted">+18% vs ontem</p></article>
-            <article class="card stat"><span class="muted">Pedidos</span><strong>46</strong><p class="muted">8 em preparo</p></article>
-            <article class="card stat"><span class="muted">Ticket médio</span><strong>R$ 40</strong><p class="muted">Entrega média 28 min</p></article>
-            <article class="card stat"><span class="muted">Estoque crítico</span><strong>3</strong><p class="muted">Repor hoje</p></article>
+            <article class="card stat"><span class="muted">Faturamento hoje</span><strong id="revenueToday">R$ 0,00</strong><p class="muted">Pedidos pagos</p></article>
+            <article class="card stat"><span class="muted">Pedidos</span><strong id="ordersCount">0</strong><p class="muted">Todos visiveis no painel</p></article>
+            <article class="card stat"><span class="muted">Lucro estimado</span><strong id="profitToday">R$ 0,00</strong><p class="muted">Venda menos custo</p></article>
+            <article class="card stat"><span class="muted">Estoque critico</span><strong id="criticalStock">0</strong><p class="muted">Repor hoje</p></article>
           </div>
           <div class="grid">
             <article class="card">
-              <h2>Pedidos recentes</h2>
+              <div class="section-head">
+                <h2>Pedidos recentes</h2>
+                <span class="muted">Atualizado pelo app</span>
+              </div>
               <div id="dashboardOrders"></div>
             </article>
             <article class="card">
-              <h2>Mais vendidos</h2>
-              <div class="row"><div><strong>Fortin Signature</strong><p class="muted">32 unidades</p></div><span class="status ok">Top 1</span></div>
-              <div class="row"><div><strong>Morango Supreme</strong><p class="muted">24 unidades</p></div><span class="status ok">Top 2</span></div>
-              <div class="row"><div><strong>Fit Purple</strong><p class="muted">17 unidades</p></div><span class="status">Top 3</span></div>
+              <div class="section-head">
+                <h2>Mais vendidos</h2>
+                <span class="muted">Produtos ativos</span>
+              </div>
+              <div id="topProducts"></div>
             </article>
           </div>
         </section>
@@ -385,96 +466,215 @@
         </section>
 
         <section class="section" data-page="produtos">
-          <form class="product-form" id="productForm">
-            <input id="productName" placeholder="Nome do produto" required />
-            <input id="productPrice" placeholder="Preço" required />
-            <input id="productStock" placeholder="Estoque" required />
-            <button class="primary" type="submit">Adicionar</button>
-          </form>
-          <article class="card" id="productsList"></article>
-        </section>
-
-        <section class="section" data-page="clientes">
-          <article class="card" id="customersList"></article>
-        </section>
-
-        <section class="section" data-page="cupons">
           <article class="card">
-            <div class="row"><div><strong>FORTIN10</strong><p class="muted">10% de desconto no pedido</p></div><span class="status ok">Ativo</span></div>
-            <div class="row"><div><strong>PRIMEIRACOMPRA</strong><p class="muted">R$ 8,00 de desconto</p></div><span class="status ok">Ativo</span></div>
-            <div class="row"><div><strong>COMBOFORTIN</strong><p class="muted">Válido para combos premium</p></div><span class="status">Agendado</span></div>
+            <div class="section-head">
+              <h2>Novo produto</h2>
+              <span class="muted">O app usa estes produtos</span>
+            </div>
+            <form class="product-form" id="productForm">
+              <input id="productName" placeholder="Nome do produto" required />
+              <input id="productPrice" placeholder="Preco de venda" required />
+              <input id="productCost" placeholder="Preco de custo" required />
+              <input id="productProfit" placeholder="Lucro do produto" readonly />
+              <input id="productStock" placeholder="Estoque" required />
+              <input id="productImage" placeholder="URL da imagem" />
+              <textarea class="full" id="productDetails" placeholder="Detalhes do que ira no acompanhamento de cada acai"></textarea>
+              <button class="primary full" type="submit">Adicionar produto</button>
+            </form>
+            <div id="productsList"></div>
           </article>
         </section>
 
+        <section class="section" data-page="promocoes">
+          <div class="page-columns">
+            <article class="card">
+              <div class="section-head">
+                <h2>Novo banner</h2>
+                <span class="muted">Aparece no app</span>
+              </div>
+              <form class="form-grid" id="bannerForm">
+                <input id="bannerTitle" placeholder="Titulo da promocao" required />
+                <textarea id="bannerSubtitle" placeholder="Descricao da promocao"></textarea>
+                <input id="bannerImage" placeholder="URL da imagem" />
+                <button class="primary" type="submit">Publicar banner</button>
+              </form>
+            </article>
+            <article class="card">
+              <div class="section-head">
+                <h2>Novo cupom</h2>
+                <span class="muted">Disponivel no app</span>
+              </div>
+              <form class="form-grid" id="couponForm">
+                <input id="couponCode" placeholder="Codigo" required />
+                <input id="couponValue" placeholder="Valor ou percentual" required />
+                <textarea id="couponDescription" placeholder="Descricao"></textarea>
+                <button class="primary" type="submit">Criar cupom</button>
+              </form>
+            </article>
+          </div>
+          <div class="page-columns" style="margin-top: 18px">
+            <article class="card">
+              <h2>Banners ativos</h2>
+              <div id="bannersList"></div>
+            </article>
+            <article class="card">
+              <h2>Cupons ativos</h2>
+              <div id="couponsList"></div>
+            </article>
+          </div>
+        </section>
+
         <section class="section" data-page="relatorios">
-          <div class="grid">
-            <article class="card stat"><span class="muted">Vendas da semana</span><strong>R$ 9.680</strong><p class="muted">242 pedidos pagos</p></article>
-            <article class="card stat"><span class="muted">Pagamentos</span><strong>PIX 72%</strong><p class="muted">Cartão 21%, dinheiro 7%</p></article>
+          <div class="report-grid">
+            <article class="card report-item"><span class="muted">Faturamento</span><strong id="reportRevenue">R$ 0,00</strong><p class="muted">Pedidos totais</p></article>
+            <article class="card report-item"><span class="muted">Lucro</span><strong id="reportProfit">R$ 0,00</strong><p class="muted">Estimativa por custo</p></article>
+            <article class="card report-item"><span class="muted">PIX</span><strong id="reportPix">0%</strong><p class="muted">Forma principal</p></article>
+            <article class="card report-item"><span class="muted">Ticket medio</span><strong id="reportTicket">R$ 0,00</strong><p class="muted">Faturamento / pedidos</p></article>
+          </div>
+          <div class="page-columns">
+            <article class="card">
+              <h2>Formas de pagamento</h2>
+              <div id="paymentReport"></div>
+            </article>
+            <article class="card">
+              <h2>Datas</h2>
+              <div id="dateReport"></div>
+            </article>
           </div>
         </section>
       </section>
     </main>
 
+    <div id="printArea"></div>
     <div class="notice" id="notice" hidden></div>
 
     <script>
-      let orders = [
-        { id: "FRT-204", customer: "Pedido balcão", status: "Em preparo", total: "R$ 38,40" },
-        { id: "FRT-205", customer: "Entrega bairro Centro", status: "Recebido", total: "R$ 52,90" },
-        { id: "FRT-206", customer: "WhatsApp", status: "Saiu para entrega", total: "R$ 31,90" }
+      const STORAGE_KEYS = {
+        orders: "fortin_panel_orders",
+        products: "fortin_panel_products",
+        banners: "fortin_panel_banners",
+        coupons: "fortin_panel_coupons"
+      };
+
+      const fallbackProducts = [
+        { id: "fortin-signature", name: "Fortin Signature", price: 31.9, cost: 16.4, stock: 42, details: "Acai, creme ninho, banana e granola crocante.", imageUrl: "assets/fortin-product.jpeg" },
+        { id: "morango-supreme", name: "Morango Supreme", price: 29.9, cost: 14.6, stock: 26, details: "Acai, morango, leite em po e calda artesanal.", imageUrl: "assets/fortin-product.jpeg" },
+        { id: "fit-purple", name: "Fit Purple", price: 27.9, cost: 13.2, stock: 11, details: "Acai zero acucar, whey, morango e granola.", imageUrl: "assets/fortin-product.jpeg" }
       ];
 
-      let products = [
-        { name: "Fortin Signature", price: "R$ 31,90", stock: 42 },
-        { name: "Morango Supreme", price: "R$ 29,90", stock: 26 },
-        { name: "Fit Purple", price: "R$ 27,90", stock: 11 },
-        { name: "Combo Família", price: "R$ 89,90", stock: 7 }
+      const fallbackOrders = [
+        { id: "FRT-204", customer: "Pedido balcao", status: "Em preparo", total: 38.4, paymentMethod: "PIX", paymentStatus: "Pago", date: today(), items: [{ quantity: 1, productName: "Fortin Signature" }] },
+        { id: "FRT-205", customer: "Entrega bairro Centro", status: "Recebido", total: 52.9, paymentMethod: "Cartao", paymentStatus: "Pago", date: today(), items: [{ quantity: 2, productName: "Morango Supreme" }] },
+        { id: "FRT-206", customer: "WhatsApp", status: "Saiu para entrega", total: 31.9, paymentMethod: "Dinheiro", paymentStatus: "Pendente", date: yesterday(), items: [{ quantity: 1, productName: "Fit Purple" }] }
       ];
 
-      const customers = [
-        { name: "Cliente WhatsApp", info: "12 pedidos • último pedido hoje" },
-        { name: "Maria Silva", info: "8 pedidos • prefere PIX" },
-        { name: "João Pereira", info: "4 pedidos • bairro Centro" }
+      const fallbackBanners = [
+        { id: "banner-home", title: "Semana Fortin", subtitle: "Compre 2 bowls e ganhe topping premium.", imageUrl: "assets/fortin-product.jpeg" }
       ];
+
+      const fallbackCoupons = [
+        { id: "coupon-fortin10", code: "FORTIN10", value: 10, description: "10% de desconto no pedido" }
+      ];
+
+      let orders = load(STORAGE_KEYS.orders, fallbackOrders);
+      let products = load(STORAGE_KEYS.products, fallbackProducts);
+      let banners = load(STORAGE_KEYS.banners, fallbackBanners);
+      let coupons = load(STORAGE_KEYS.coupons, fallbackCoupons);
+      let audioEnabled = false;
+      let audioContext = null;
+
+      function today() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function yesterday() {
+        return new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      }
+
+      function load(key, fallback) {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }
+
+      function save() {
+        localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(orders));
+        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+        localStorage.setItem(STORAGE_KEYS.banners, JSON.stringify(banners));
+        localStorage.setItem(STORAGE_KEYS.coupons, JSON.stringify(coupons));
+      }
+
+      function money(value) {
+        return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      }
+
+      function numberValue(value) {
+        return Number(String(value).replace(",", ".").replace(/[^\d.]/g, "")) || 0;
+      }
 
       function showNotice(message) {
         const notice = document.getElementById("notice");
         notice.textContent = message;
         notice.hidden = false;
         clearTimeout(window.noticeTimer);
-        window.noticeTimer = setTimeout(() => notice.hidden = true, 2200);
+        window.noticeTimer = setTimeout(() => (notice.hidden = true), 2200);
       }
 
       function statusClass(status) {
         if (status === "Entregue") return "ok";
+        if (status === "Saiu para entrega") return "delivery";
         if (status === "Cancelado") return "danger";
         return "";
+      }
+
+      function playOrderSound() {
+        audioContext = audioContext || new AudioContext();
+        if (audioContext.state === "suspended") audioContext.resume();
+        const now = audioContext.currentTime;
+        [
+          { frequency: 880, start: 0, duration: 0.14 },
+          { frequency: 1174, start: 0.16, duration: 0.16 },
+          { frequency: 988, start: 0.36, duration: 0.22 }
+        ].forEach((note) => {
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(note.frequency, now + note.start);
+          gain.gain.setValueAtTime(0.0001, now + note.start);
+          gain.gain.exponentialRampToValueAtTime(0.22, now + note.start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + note.duration);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now + note.start);
+          oscillator.stop(now + note.start + note.duration + 0.03);
+        });
       }
 
       function renderOrders() {
         const term = document.getElementById("orderSearch")?.value.toLowerCase() || "";
         const filter = document.getElementById("orderFilter")?.value || "Todos";
-        const filtered = orders.filter(order => {
+        const filtered = orders.filter((order) => {
           const matchTerm = `${order.id} ${order.customer}`.toLowerCase().includes(term);
           const matchFilter = filter === "Todos" || order.status === filter;
           return matchTerm && matchFilter;
         });
 
-        const html = filtered.map((order, index) => `
-          <div class="row">
-            <div>
-              <strong>${order.id}</strong>
-              <p class="muted">${order.customer} • ${order.total}</p>
+        document.getElementById("ordersList").innerHTML =
+          filtered.map((order, index) => `
+            <div class="row">
+              <div>
+                <strong>${order.id}</strong>
+                <p class="muted">${order.customer} - ${money(order.total)}</p>
+                <p class="muted">${order.items.map((item) => `${item.quantity}x ${item.productName}`).join(", ")}</p>
+                <p class="muted">${order.paymentMethod} - ${order.paymentStatus} - ${order.date}</p>
+              </div>
+              <div class="actions">
+                <span class="status ${statusClass(order.status)}">${order.status}</span>
+                <button class="small" type="button" data-next-order="${index}">Avancar</button>
+                <button class="small" type="button" data-print-order="${index}">Imprimir</button>
+              </div>
             </div>
-            <div class="actions">
-              <span class="status ${statusClass(order.status)}">${order.status}</span>
-              <button class="small" type="button" data-next-order="${index}">Avançar</button>
-            </div>
-          </div>
-        `).join("") || `<p class="muted">Nenhum pedido encontrado.</p>`;
+          `).join("") || `<p class="muted">Nenhum pedido encontrado.</p>`;
 
-        document.getElementById("ordersList").innerHTML = html;
-        document.getElementById("dashboardOrders").innerHTML = orders.slice(0, 3).map(order => `
+        document.getElementById("dashboardOrders").innerHTML = orders.slice(0, 4).map((order) => `
           <div class="row"><div><strong>${order.id}</strong><p class="muted">${order.customer}</p></div><span class="status ${statusClass(order.status)}">${order.status}</span></div>
         `).join("");
       }
@@ -482,28 +682,102 @@
       function renderProducts() {
         document.getElementById("productsList").innerHTML = products.map((product, index) => `
           <div class="row">
-            <div><strong>${product.name}</strong><p class="muted">${product.price} • ${product.stock} unidades</p></div>
+            <div>
+              <strong>${product.name}</strong>
+              <p class="muted">Venda: ${money(product.price)} - Custo: ${money(product.cost)} - Lucro: ${money(product.price - product.cost)}</p>
+              <p class="muted">${product.details || "Sem acompanhamento informado."}</p>
+            </div>
             <div class="actions">
+              <span class="status ${product.stock <= 10 ? "danger" : "ok"}">${product.stock} un.</span>
               <button class="small" type="button" data-stock="${index}">+ Estoque</button>
               <button class="small" type="button" data-remove-product="${index}">Remover</button>
             </div>
           </div>
         `).join("");
-      }
 
-      function renderCustomers() {
-        document.getElementById("customersList").innerHTML = customers.map(customer => `
-          <div class="row"><div><strong>${customer.name}</strong><p class="muted">${customer.info}</p></div><button class="small" type="button" data-message="${customer.name}">Enviar WhatsApp</button></div>
+        document.getElementById("topProducts").innerHTML = products.slice(0, 3).map((product, index) => `
+          <div class="row"><div><strong>${product.name}</strong><p class="muted">${product.stock} unidades</p></div><span class="status ok">Top ${index + 1}</span></div>
         `).join("");
       }
 
-      document.addEventListener("click", event => {
-        const target = event.target.closest("[data-section], [data-next-order], [data-stock], [data-remove-product], [data-message], #syncButton, #logoutButton");
+      function renderPromotions() {
+        document.getElementById("bannersList").innerHTML = banners.map((banner, index) => `
+          <div class="row"><div><strong>${banner.title}</strong><p class="muted">${banner.subtitle || "Banner ativo"}</p></div><button class="small" type="button" data-remove-banner="${index}">Remover</button></div>
+        `).join("");
+        document.getElementById("couponsList").innerHTML = coupons.map((coupon, index) => `
+          <div class="row"><div><strong>${coupon.code}</strong><p class="muted">${coupon.description || "Cupom ativo"} - ${coupon.value}</p></div><button class="small" type="button" data-remove-coupon="${index}">Remover</button></div>
+        `).join("");
+      }
+
+      function renderReports() {
+        const revenue = orders.reduce((total, order) => total + Number(order.total), 0);
+        const cost = orders.reduce((total, order) => {
+          return total + order.items.reduce((itemTotal, item) => {
+            const product = products.find((candidate) => candidate.name === item.productName);
+            return itemTotal + Number(product?.cost || 0) * Number(item.quantity || 1);
+          }, 0);
+        }, 0);
+        const profit = revenue - cost;
+        const pixCount = orders.filter((order) => order.paymentMethod === "PIX").length;
+        const ticket = orders.length ? revenue / orders.length : 0;
+
+        document.getElementById("revenueToday").textContent = money(revenue);
+        document.getElementById("ordersCount").textContent = String(orders.length);
+        document.getElementById("profitToday").textContent = money(profit);
+        document.getElementById("criticalStock").textContent = String(products.filter((product) => product.stock <= 10).length);
+        document.getElementById("reportRevenue").textContent = money(revenue);
+        document.getElementById("reportProfit").textContent = money(profit);
+        document.getElementById("reportPix").textContent = `${orders.length ? Math.round((pixCount / orders.length) * 100) : 0}%`;
+        document.getElementById("reportTicket").textContent = money(ticket);
+
+        const paymentMap = orders.reduce((map, order) => {
+          const current = map[order.paymentMethod] || { count: 0, total: 0 };
+          map[order.paymentMethod] = { count: current.count + 1, total: current.total + Number(order.total) };
+          return map;
+        }, {});
+        document.getElementById("paymentReport").innerHTML = Object.entries(paymentMap).map(([method, data]) => `
+          <div class="row"><strong>${method}</strong><span>${data.count} pedidos - ${money(data.total)}</span></div>
+        `).join("");
+
+        const dateMap = orders.reduce((map, order) => {
+          const current = map[order.date] || { count: 0, total: 0 };
+          map[order.date] = { count: current.count + 1, total: current.total + Number(order.total) };
+          return map;
+        }, {});
+        document.getElementById("dateReport").innerHTML = Object.entries(dateMap).map(([date, data]) => `
+          <div class="row"><strong>${date}</strong><span>${data.count} pedidos - ${money(data.total)}</span></div>
+        `).join("");
+      }
+
+      function renderAll() {
+        save();
+        renderOrders();
+        renderProducts();
+        renderPromotions();
+        renderReports();
+      }
+
+      function printOrder(order) {
+        document.getElementById("printArea").innerHTML = `
+          <h1>Acai do Fortin</h1>
+          <p><strong>Pedido:</strong> ${order.id}</p>
+          <p><strong>Cliente:</strong> ${order.customer}</p>
+          <p><strong>Pagamento:</strong> ${order.paymentMethod} - ${order.paymentStatus}</p>
+          <p><strong>Data:</strong> ${order.date}</p>
+          <hr />
+          ${order.items.map((item) => `<p>${item.quantity}x ${item.productName}</p>`).join("")}
+          <h2>Total: ${money(order.total)}</h2>
+        `;
+        window.print();
+      }
+
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-section], [data-next-order], [data-print-order], [data-stock], [data-remove-product], [data-remove-banner], [data-remove-coupon], #syncButton, #logoutButton, #soundButton");
         if (!target) return;
 
         if (target.dataset.section) {
-          document.querySelectorAll("[data-section]").forEach(button => button.classList.toggle("active", button === target));
-          document.querySelectorAll("[data-page]").forEach(section => section.classList.toggle("active", section.dataset.page === target.dataset.section));
+          document.querySelectorAll("[data-section]").forEach((button) => button.classList.toggle("active", button === target));
+          document.querySelectorAll("[data-page]").forEach((section) => section.classList.toggle("active", section.dataset.page === target.dataset.section));
         }
 
         if (target.dataset.nextOrder) {
@@ -511,47 +785,120 @@
           const flow = ["Recebido", "Em preparo", "Saiu para entrega", "Entregue"];
           const current = orders[index];
           current.status = flow[Math.min(flow.indexOf(current.status) + 1, flow.length - 1)];
-          renderOrders();
+          renderAll();
           showNotice(`Pedido ${current.id} atualizado para ${current.status}.`);
         }
 
+        if (target.dataset.printOrder) printOrder(orders[Number(target.dataset.printOrder)]);
+
         if (target.dataset.stock) {
           products[Number(target.dataset.stock)].stock += 5;
-          renderProducts();
+          renderAll();
           showNotice("Estoque atualizado.");
         }
 
         if (target.dataset.removeProduct) {
           products.splice(Number(target.dataset.removeProduct), 1);
-          renderProducts();
+          renderAll();
           showNotice("Produto removido.");
         }
 
-        if (target.dataset.message) {
-          window.open(`https://wa.me/5511999990000?text=Oi%2C%20${encodeURIComponent(target.dataset.message)}.%20Aqui%20%C3%A9%20o%20A%C3%A7a%C3%AD%20do%20Fortin.`, "_blank");
+        if (target.dataset.removeBanner) {
+          banners.splice(Number(target.dataset.removeBanner), 1);
+          renderAll();
+          showNotice("Banner removido.");
         }
 
-        if (target.id === "syncButton") showNotice("Painel sincronizado.");
-        if (target.id === "logoutButton") showNotice("Sessão encerrada nesta prévia.");
+        if (target.dataset.removeCoupon) {
+          coupons.splice(Number(target.dataset.removeCoupon), 1);
+          renderAll();
+          showNotice("Cupom removido.");
+        }
+
+        if (target.id === "syncButton") {
+          const nextOrder = {
+            id: `FRT-${Math.floor(300 + Math.random() * 600)}`,
+            customer: "Pedido recebido pelo app",
+            status: "Recebido",
+            total: products[0]?.price || 31.9,
+            paymentMethod: "PIX",
+            paymentStatus: "Pago",
+            date: today(),
+            items: [{ quantity: 1, productName: products[0]?.name || "Fortin Signature" }]
+          };
+          orders.unshift(nextOrder);
+          renderAll();
+          if (audioEnabled) playOrderSound();
+          showNotice("Novo pedido sincronizado.");
+        }
+
+        if (target.id === "soundButton") {
+          audioEnabled = true;
+          target.textContent = "Toque ativo";
+          playOrderSound();
+          showNotice("Toque de novo pedido ativado.");
+        }
+
+        if (target.id === "logoutButton") showNotice("Sessao encerrada nesta previa.");
       });
 
+      document.getElementById("productPrice").addEventListener("input", updateProductProfit);
+      document.getElementById("productCost").addEventListener("input", updateProductProfit);
       document.getElementById("orderSearch").addEventListener("input", renderOrders);
       document.getElementById("orderFilter").addEventListener("change", renderOrders);
-      document.getElementById("productForm").addEventListener("submit", event => {
+
+      function updateProductProfit() {
+        const price = numberValue(document.getElementById("productPrice").value);
+        const cost = numberValue(document.getElementById("productCost").value);
+        document.getElementById("productProfit").value = money(Math.max(price - cost, 0));
+      }
+
+      document.getElementById("productForm").addEventListener("submit", (event) => {
         event.preventDefault();
+        const price = numberValue(document.getElementById("productPrice").value);
+        const cost = numberValue(document.getElementById("productCost").value);
         products.unshift({
+          id: `product-${Date.now()}`,
           name: document.getElementById("productName").value,
-          price: document.getElementById("productPrice").value,
-          stock: Number(document.getElementById("productStock").value)
+          price,
+          cost,
+          stock: Number(document.getElementById("productStock").value) || 0,
+          imageUrl: document.getElementById("productImage").value || "assets/fortin-product.jpeg",
+          details: document.getElementById("productDetails").value
         });
         event.target.reset();
-        renderProducts();
-        showNotice("Produto cadastrado.");
+        updateProductProfit();
+        renderAll();
+        showNotice("Produto cadastrado e enviado ao app.");
       });
 
-      renderOrders();
-      renderProducts();
-      renderCustomers();
+      document.getElementById("bannerForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        banners.unshift({
+          id: `banner-${Date.now()}`,
+          title: document.getElementById("bannerTitle").value,
+          subtitle: document.getElementById("bannerSubtitle").value,
+          imageUrl: document.getElementById("bannerImage").value || "assets/fortin-product.jpeg"
+        });
+        event.target.reset();
+        renderAll();
+        showNotice("Banner publicado no app.");
+      });
+
+      document.getElementById("couponForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        coupons.unshift({
+          id: `coupon-${Date.now()}`,
+          code: document.getElementById("couponCode").value.toUpperCase(),
+          value: numberValue(document.getElementById("couponValue").value),
+          description: document.getElementById("couponDescription").value
+        });
+        event.target.reset();
+        renderAll();
+        showNotice("Cupom cadastrado.");
+      });
+
+      renderAll();
     </script>
   </body>
 </html>
