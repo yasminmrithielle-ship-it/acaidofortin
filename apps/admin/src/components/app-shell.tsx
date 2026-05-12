@@ -1,4 +1,5 @@
-import { ChartColumnBig, LayoutDashboard, LogOut, Package, Percent, ShoppingBasket } from "lucide-react";
+import { useState } from "react";
+import { ChartColumnBig, LayoutDashboard, LogOut, Menu, Package, Percent, ShoppingBasket, X } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 type Props = {
@@ -9,20 +10,25 @@ const navigation = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/orders", label: "Pedidos", icon: ShoppingBasket },
   { to: "/products", label: "Produtos", icon: Package },
-  { to: "/promotions", label: "Promoções", icon: Percent },
-  { to: "/reports", label: "Relatórios", icon: ChartColumnBig }
+  { to: "/promotions", label: "Promocoes", icon: Percent },
+  { to: "/reports", label: "Relatorios", icon: ChartColumnBig }
 ];
 
 export function AppShell({ onLogout }: Props) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="shell">
-      <aside className="sidebar">
+      <aside className={sidebarOpen ? "sidebar open" : "sidebar"}>
         <div className="brand">
-          <img alt="Açaí do Fortin" className="brand-mark" src="/assets/fortin-logo.jpeg" />
+          <img alt="Acai do Fortin" className="brand-mark" src="/assets/fortin-logo.jpeg" />
           <div>
-            <strong>Açaí do Fortin</strong>
+            <strong>Acai do Fortin</strong>
             <small>Painel premium</small>
           </div>
+          <button aria-label="Fechar menu" className="sidebar-close" onClick={() => setSidebarOpen(false)} type="button">
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="nav">
@@ -34,6 +40,7 @@ export function AppShell({ onLogout }: Props) {
                 key={item.to}
                 to={item.to}
                 end={item.to === "/"}
+                onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
               >
                 <Icon size={18} />
@@ -48,14 +55,25 @@ export function AppShell({ onLogout }: Props) {
           <span>Sair</span>
         </button>
       </aside>
+      <button
+        aria-label="Fechar menu"
+        className={sidebarOpen ? "sidebar-backdrop visible" : "sidebar-backdrop"}
+        onClick={() => setSidebarOpen(false)}
+        type="button"
+      />
 
       <main className="content">
         <header className="topbar">
-          <div>
-            <p className="eyebrow">Operação em tempo real</p>
-            <h1>Gestão de delivery, fidelidade e promoções</h1>
+          <div className="topbar-title">
+            <button aria-label="Abrir menu" className="menu-toggle" onClick={() => setSidebarOpen(true)} type="button">
+              <Menu size={22} />
+            </button>
+            <div>
+              <p className="eyebrow">Operacao em tempo real</p>
+              <h1>Gestao de delivery, fidelidade e promocoes</h1>
+            </div>
           </div>
-          <div className="topbar-chip">Açaí artesanal premium</div>
+          <div className="topbar-chip">Acai artesanal premium</div>
         </header>
         <Outlet />
       </main>

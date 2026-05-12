@@ -81,6 +81,12 @@
         position: sticky;
         top: 0;
         height: 100vh;
+        z-index: 30;
+        transition: transform 240ms ease;
+      }
+
+      .sidebar-backdrop {
+        display: none;
       }
 
       .brand {
@@ -88,6 +94,29 @@
         align-items: center;
         gap: 12px;
         margin-bottom: 28px;
+      }
+
+      .sidebar-close,
+      .menu-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .sidebar-close {
+        width: 38px;
+        height: 38px;
+        margin-left: auto;
+        border-radius: 12px;
+      }
+
+      .menu-toggle {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
       }
 
       .brand img {
@@ -150,6 +179,12 @@
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 24px;
+      }
+
+      .topbar-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
       }
 
       .section-head {
@@ -379,10 +414,40 @@
         }
 
         .sidebar {
-          height: auto;
-          position: static;
-          border-right: 0;
-          border-bottom: 1px solid var(--line);
+          position: fixed;
+          inset: 0 auto 0 0;
+          width: min(84vw, 320px);
+          height: 100vh;
+          border-right: 1px solid var(--line);
+          border-bottom: 0;
+          transform: translateX(-105%);
+          box-shadow: 30px 0 80px rgba(0, 0, 0, 0.46);
+        }
+
+        body.menu-open .sidebar {
+          transform: translateX(0);
+        }
+
+        .sidebar-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 20;
+          display: block;
+          border: 0;
+          background: rgba(0, 0, 0, 0.48);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 200ms ease;
+        }
+
+        body.menu-open .sidebar-backdrop {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .menu-toggle,
+        .sidebar-close {
+          display: flex;
         }
 
         .logout {
@@ -418,6 +483,7 @@
             <strong>Acai do Fortin</strong>
             <span>Painel admin</span>
           </div>
+          <button class="sidebar-close" id="closeMenuButton" type="button" aria-label="Fechar menu">×</button>
         </div>
 
         <nav class="nav" id="nav">
@@ -430,12 +496,16 @@
 
         <button class="ghost logout" type="button" id="logoutButton">Sair do painel</button>
       </aside>
+      <button class="sidebar-backdrop" id="menuBackdrop" type="button" aria-label="Fechar menu"></button>
 
       <section class="content">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">Operacao em tempo real</p>
-            <h1>Gestao do delivery</h1>
+          <div class="topbar-title">
+            <button class="menu-toggle" id="openMenuButton" type="button" aria-label="Abrir menu">☰</button>
+            <div>
+              <p class="eyebrow">Operacao em tempo real</p>
+              <h1>Gestao do delivery</h1>
+            </div>
           </div>
           <div class="actions">
             <button class="pill" type="button" id="soundButton">Ativar toque</button>
@@ -789,12 +859,16 @@
       }
 
       document.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-section], [data-next-order], [data-print-order], [data-stock], [data-remove-product], [data-remove-banner], [data-remove-coupon], #syncButton, #logoutButton, #soundButton");
+        const target = event.target.closest("[data-section], [data-next-order], [data-print-order], [data-stock], [data-remove-product], [data-remove-banner], [data-remove-coupon], #syncButton, #logoutButton, #soundButton, #openMenuButton, #closeMenuButton, #menuBackdrop");
         if (!target) return;
+
+        if (target.id === "openMenuButton") document.body.classList.add("menu-open");
+        if (target.id === "closeMenuButton" || target.id === "menuBackdrop") document.body.classList.remove("menu-open");
 
         if (target.dataset.section) {
           document.querySelectorAll("[data-section]").forEach((button) => button.classList.toggle("active", button === target));
           document.querySelectorAll("[data-page]").forEach((section) => section.classList.toggle("active", section.dataset.page === target.dataset.section));
+          document.body.classList.remove("menu-open");
         }
 
         if (target.dataset.nextOrder) {
