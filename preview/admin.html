@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#68158c" />
+    <title>Painel Admin | Açaí do Fortin</title>
+    <style>
+      :root {
+        --bg: #08060b;
+        --panel: rgba(24, 14, 32, 0.92);
+        --panel-2: rgba(35, 18, 47, 0.9);
+        --line: rgba(255, 201, 40, 0.18);
+        --text: #fff8ff;
+        --muted: #d4bedc;
+        --purple: #68158c;
+        --gold: #ffc928;
+        --green: #5bc537;
+        --red: #ff5c7a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 201, 40, 0.15), transparent 28%),
+          radial-gradient(circle at 86% 4%, rgba(104, 21, 140, 0.55), transparent 32%),
+          linear-gradient(140deg, #06040a, #180b21 52%, #09070f);
+        color: var(--text);
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        background: rgba(8, 5, 12, 0.82);
+        padding: 24px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .brand img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 18px;
+        background: white;
+      }
+
+      .brand strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .brand span,
+      .muted {
+        color: var(--muted);
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav button,
+      .ghost {
+        border: 1px solid transparent;
+        border-radius: 16px;
+        padding: 13px 14px;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .nav button.active,
+      .nav button:hover,
+      .ghost:hover {
+        border-color: var(--line);
+        background: linear-gradient(135deg, rgba(104, 21, 140, 0.64), rgba(255, 201, 40, 0.12));
+      }
+
+      .logout {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 24px;
+      }
+
+      .content {
+        padding: 28px;
+        overflow: auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 0;
+        font-size: clamp(28px, 4vw, 48px);
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 11px 15px;
+        background: rgba(255, 201, 40, 0.1);
+        color: var(--gold);
+        font-weight: 900;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+        padding: 20px;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 18px;
+      }
+
+      .section {
+        display: none;
+      }
+
+      .section.active {
+        display: block;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+
+      input,
+      select {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text);
+        padding: 0 14px;
+      }
+
+      .primary {
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, var(--purple), var(--gold));
+        color: white;
+        font-weight: 900;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        padding: 14px 0;
+      }
+
+      .row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .status {
+        border-radius: 999px;
+        padding: 8px 10px;
+        background: rgba(255, 201, 40, 0.12);
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .status.ok {
+        background: rgba(91, 197, 55, 0.14);
+        color: var(--green);
+      }
+
+      .status.danger {
+        background: rgba(255, 92, 122, 0.14);
+        color: var(--red);
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .small {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 9px 11px;
+        background: var(--panel-2);
+        color: var(--text);
+        font-weight: 800;
+      }
+
+      .product-form {
+        display: grid;
+        grid-template-columns: 1.2fr 0.7fr 0.6fr auto;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .notice {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        max-width: 360px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: rgba(16, 8, 22, 0.96);
+        color: var(--text);
+        font-weight: 900;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+      }
+
+      .notice[hidden] {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          height: auto;
+          position: static;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .logout {
+          position: static;
+          margin-top: 16px;
+        }
+
+        .stats,
+        .grid,
+        .product-form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+          <div>
+            <strong>Açaí do Fortin</strong>
+            <span>Painel admin</span>
+          </div>
+        </div>
+
+        <nav class="nav" id="nav">
+          <button class="active" type="button" data-section="dashboard">Dashboard</button>
+          <button type="button" data-section="pedidos">Pedidos</button>
+          <button type="button" data-section="produtos">Produtos</button>
+          <button type="button" data-section="clientes">Clientes</button>
+          <button type="button" data-section="cupons">Cupons</button>
+          <button type="button" data-section="relatorios">Relatórios</button>
+        </nav>
+
+        <button class="ghost logout" type="button" id="logoutButton">Sair do painel</button>
+      </aside>
+
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Operação em tempo real</p>
+            <h1>Gestão do delivery</h1>
+          </div>
+          <button class="pill" type="button" id="syncButton">Sincronizar agora</button>
+        </header>
+
+        <section class="section active" data-page="dashboard">
+          <div class="stats">
+            <article class="card stat"><span class="muted">Receita hoje</span><strong>R$ 1.842</strong><p class="muted">+18% vs ontem</p></article>
+            <article class="card stat"><span class="muted">Pedidos</span><strong>46</strong><p class="muted">8 em preparo</p></article>
+            <article class="card stat"><span class="muted">Ticket médio</span><strong>R$ 40</strong><p class="muted">Entrega média 28 min</p></article>
+            <article class="card stat"><span class="muted">Estoque crítico</span><strong>3</strong><p class="muted">Repor hoje</p></article>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <h2>Pedidos recentes</h2>
+              <div id="dashboardOrders"></div>
+            </article>
+            <article class="card">
+              <h2>Mais vendidos</h2>
+              <div class="row"><div><strong>Fortin Signature</strong><p class="muted">32 unidades</p></div><span class="status ok">Top 1</span></div>
+              <div class="row"><div><strong>Morango Supreme</strong><p class="muted">24 unidades</p></div><span class="status ok">Top 2</span></div>
+              <div class="row"><div><strong>Fit Purple</strong><p class="muted">17 unidades</p></div><span class="status">Top 3</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" data-page="pedidos">
+          <div class="toolbar">
+            <input id="orderSearch" placeholder="Buscar pedido ou cliente" />
+            <select id="orderFilter">
+              <option>Todos</option>
+              <option>Recebido</option>
+              <option>Em preparo</option>
+              <option>Saiu para entrega</option>
+              <option>Entregue</option>
+            </select>
+          </div>
+          <article class="card" id="ordersList"></article>
+        </section>
+
+        <section class="section" data-page="produtos">
+          <form class="product-form" id="productForm">
+            <input id="productName" placeholder="Nome do produto" required />
+            <input id="productPrice" placeholder="Preço" required />
+            <input id="productStock" placeholder="Estoque" required />
+            <button class="primary" type="submit">Adicionar</button>
+          </form>
+          <article class="card" id="productsList"></article>
+        </section>
+
+        <section class="section" data-page="clientes">
+          <article class="card" id="customersList"></article>
+        </section>
+
+        <section class="section" data-page="cupons">
+          <article class="card">
+            <div class="row"><div><strong>FORTIN10</strong><p class="muted">10% de desconto no pedido</p></div><span class="status ok">Ativo</span></div>
+            <div class="row"><div><strong>PRIMEIRACOMPRA</strong><p class="muted">R$ 8,00 de desconto</p></div><span class="status ok">Ativo</span></div>
+            <div class="row"><div><strong>COMBOFORTIN</strong><p class="muted">Válido para combos premium</p></div><span class="status">Agendado</span></div>
+          </article>
+        </section>
+
+        <section class="section" data-page="relatorios">
+          <div class="grid">
+            <article class="card stat"><span class="muted">Vendas da semana</span><strong>R$ 9.680</strong><p class="muted">242 pedidos pagos</p></article>
+            <article class="card stat"><span class="muted">Pagamentos</span><strong>PIX 72%</strong><p class="muted">Cartão 21%, dinheiro 7%</p></article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="notice" id="notice" hidden></div>
+
+    <script>
+      let orders = [
+        { id: "FRT-204", customer: "Pedido balcão", status: "Em preparo", total: "R$ 38,40" },
+        { id: "FRT-205", customer: "Entrega bairro Centro", status: "Recebido", total: "R$ 52,90" },
+        { id: "FRT-206", customer: "WhatsApp", status: "Saiu para entrega", total: "R$ 31,90" }
+      ];
+
+      let products = [
+        { name: "Fortin Signature", price: "R$ 31,90", stock: 42 },
+        { name: "Morango Supreme", price: "R$ 29,90", stock: 26 },
+        { name: "Fit Purple", price: "R$ 27,90", stock: 11 },
+        { name: "Combo Família", price: "R$ 89,90", stock: 7 }
+      ];
+
+      const customers = [
+        { name: "Cliente WhatsApp", info: "12 pedidos • último pedido hoje" },
+        { name: "Maria Silva", info: "8 pedidos • prefere PIX" },
+        { name: "João Pereira", info: "4 pedidos • bairro Centro" }
+      ];
+
+      function showNotice(message) {
+        const notice = document.getElementById("notice");
+        notice.textContent = message;
+        notice.hidden = false;
+        clearTimeout(window.noticeTimer);
+        window.noticeTimer = setTimeout(() => notice.hidden = true, 2200);
+      }
+
+      function statusClass(status) {
+        if (status === "Entregue") return "ok";
+        if (status === "Cancelado") return "danger";
+        return "";
+      }
+
+      function renderOrders() {
+        const term = document.getElementById("orderSearch")?.value.toLowerCase() || "";
+        const filter = document.getElementById("orderFilter")?.value || "Todos";
+        const filtered = orders.filter(order => {
+          const matchTerm = `${order.id} ${order.customer}`.toLowerCase().includes(term);
+          const matchFilter = filter === "Todos" || order.status === filter;
+          return matchTerm && matchFilter;
+        });
+
+        const html = filtered.map((order, index) => `
+          <div class="row">
+            <div>
+              <strong>${order.id}</strong>
+              <p class="muted">${order.customer} • ${order.total}</p>
+            </div>
+            <div class="actions">
+              <span class="status ${statusClass(order.status)}">${order.status}</span>
+              <button class="small" type="button" data-next-order="${index}">Avançar</button>
+            </div>
+          </div>
+        `).join("") || `<p class="muted">Nenhum pedido encontrado.</p>`;
+
+        document.getElementById("ordersList").innerHTML = html;
+        document.getElementById("dashboardOrders").innerHTML = orders.slice(0, 3).map(order => `
+          <div class="row"><div><strong>${order.id}</strong><p class="muted">${order.customer}</p></div><span class="status ${statusClass(order.status)}">${order.status}</span></div>
+        `).join("");
+      }
+
+      function renderProducts() {
+        document.getElementById("productsList").innerHTML = products.map((product, index) => `
+          <div class="row">
+            <div><strong>${product.name}</strong><p class="muted">${product.price} • ${product.stock} unidades</p></div>
+            <div class="actions">
+              <button class="small" type="button" data-stock="${index}">+ Estoque</button>
+              <button class="small" type="button" data-remove-product="${index}">Remover</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderCustomers() {
+        document.getElementById("customersList").innerHTML = customers.map(customer => `
+          <div class="row"><div><strong>${customer.name}</strong><p class="muted">${customer.info}</p></div><button class="small" type="button" data-message="${customer.name}">Enviar WhatsApp</button></div>
+        `).join("");
+      }
+
+      document.addEventListener("click", event => {
+        const target = event.target.closest("[data-section], [data-next-order], [data-stock], [data-remove-product], [data-message], #syncButton, #logoutButton");
+        if (!target) return;
+
+        if (target.dataset.section) {
+          document.querySelectorAll("[data-section]").forEach(button => button.classList.toggle("active", button === target));
+          document.querySelectorAll("[data-page]").forEach(section => section.classList.toggle("active", section.dataset.page === target.dataset.section));
+        }
+
+        if (target.dataset.nextOrder) {
+          const index = Number(target.dataset.nextOrder);
+          const flow = ["Recebido", "Em preparo", "Saiu para entrega", "Entregue"];
+          const current = orders[index];
+          current.status = flow[Math.min(flow.indexOf(current.status) + 1, flow.length - 1)];
+          renderOrders();
+          showNotice(`Pedido ${current.id} atualizado para ${current.status}.`);
+        }
+
+        if (target.dataset.stock) {
+          products[Number(target.dataset.stock)].stock += 5;
+          renderProducts();
+          showNotice("Estoque atualizado.");
+        }
+
+        if (target.dataset.removeProduct) {
+          products.splice(Number(target.dataset.removeProduct), 1);
+          renderProducts();
+          showNotice("Produto removido.");
+        }
+
+        if (target.dataset.message) {
+          window.open(`https://wa.me/5511999990000?text=Oi%2C%20${encodeURIComponent(target.dataset.message)}.%20Aqui%20%C3%A9%20o%20A%C3%A7a%C3%AD%20do%20Fortin.`, "_blank");
+        }
+
+        if (target.id === "syncButton") showNotice("Painel sincronizado.");
+        if (target.id === "logoutButton") showNotice("Sessão encerrada nesta prévia.");
+      });
+
+      document.getElementById("orderSearch").addEventListener("input", renderOrders);
+      document.getElementById("orderFilter").addEventListener("change", renderOrders);
+      document.getElementById("productForm").addEventListener("submit", event => {
+        event.preventDefault();
+        products.unshift({
+          name: document.getElementById("productName").value,
+          price: document.getElementById("productPrice").value,
+          stock: Number(document.getElementById("productStock").value)
+        });
+        event.target.reset();
+        renderProducts();
+        showNotice("Produto cadastrado.");
+      });
+
+      renderOrders();
+      renderProducts();
+      renderCustomers();
+    </script>
+  </body>
+</html>
