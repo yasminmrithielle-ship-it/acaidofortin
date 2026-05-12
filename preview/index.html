@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#68158c" />
+    <meta name="description" content="Açaí do Fortin: cardápio digital, montagem de açaí, carrinho e pedidos pelo smartphone." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Açaí do Fortin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+    <title>Açaí do Fortin</title>
+    <style>
+      :root {
+        --bg: #0b0710;
+        --panel: #17101f;
+        --panel-2: #24162d;
+        --ink: #fff8ff;
+        --muted: #d0bdd7;
+        --accent: #68158c;
+        --hot: #ffc928;
+        --green: #5bc537;
+        --yellow: #ffc928;
+        --line: rgba(255, 201, 40, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(135deg, rgba(154, 40, 255, 0.18), transparent 38%),
+          radial-gradient(circle at 80% 15%, rgba(232, 92, 255, 0.18), transparent 26%),
+          #08060b;
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .stage {
+        width: min(100vw, 1200px);
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 430px minmax(320px, 1fr);
+        gap: 36px;
+        align-items: center;
+        padding: 32px;
+      }
+
+      .phone {
+        width: min(100%, 430px);
+        height: min(900px, calc(100vh - 48px));
+        min-height: 720px;
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background: var(--bg);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 1fr;
+        position: relative;
+      }
+
+      .screen {
+        display: none;
+        overflow: auto;
+        padding: 24px 20px 18px;
+      }
+
+      .screen.active {
+        display: block;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .brand-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo-small {
+        width: 54px;
+        height: 54px;
+        border-radius: 8px;
+        object-fit: contain;
+        background: #fff;
+      }
+
+      .brand {
+        display: grid;
+        gap: 4px;
+      }
+
+      .brand strong,
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      .brand span,
+      .muted,
+      .card p {
+        color: var(--muted);
+      }
+
+      .icon-btn,
+      button {
+        border: 0;
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      .icon-btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: var(--panel);
+        font-size: 20px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .install-chip {
+        border: 1px solid rgba(255, 201, 40, 0.45);
+        border-radius: 999px;
+        padding: 10px 13px;
+        background: rgba(255, 201, 40, 0.12);
+        color: var(--hot);
+        font-size: 12px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .install-chip[hidden] {
+        display: none;
+      }
+
+      .menu-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 5;
+      }
+
+      .menu-backdrop[hidden],
+      .menu-panel[hidden] {
+        display: none;
+      }
+
+      .menu-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(82%, 310px);
+        z-index: 6;
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        padding: 22px;
+        border-left: 1px solid var(--line);
+        background: rgba(14, 8, 20, 0.98);
+        box-shadow: -20px 0 70px rgba(0, 0, 0, 0.42);
+      }
+
+      .menu-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .menu-link {
+        width: 100%;
+        border-radius: 8px;
+        padding: 15px 14px;
+        background: var(--panel);
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 245px;
+        border-radius: 8px;
+        padding: 20px;
+        overflow: hidden;
+        background:
+          linear-gradient(155deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.78)),
+          url("assets/fortin-product.jpeg") center / cover;
+      }
+
+      .hero-logo {
+        position: absolute;
+        width: 122px;
+        height: 105px;
+        right: 14px;
+        top: 14px;
+        border-radius: 8px;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 5px;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        width: 68%;
+        display: grid;
+        gap: 12px;
+      }
+
+      .eyebrow {
+        color: #f0b6ff;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }
+
+      .hero h1 {
+        font-size: 31px;
+        line-height: 1.05;
+      }
+
+      .primary {
+        width: fit-content;
+        padding: 13px 16px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), #3c0c54 56%, var(--hot));
+        font-weight: 800;
+        color: white;
+      }
+
+      .section {
+        margin-top: 22px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .section-head h2 {
+        font-size: 20px;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        overflow: auto;
+        padding-bottom: 4px;
+      }
+
+      .chip {
+        flex: 0 0 auto;
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .chip.active {
+        background: var(--accent);
+        color: white;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 14px;
+      }
+
+      .product {
+        display: grid;
+        grid-template-columns: 82px 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .thumb {
+        width: 82px;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        object-fit: cover;
+        background: var(--panel-2);
+      }
+
+      .product strong,
+      .order strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .price-row,
+      .cart-row,
+      .metric-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .price {
+        font-weight: 900;
+      }
+
+      .small-btn {
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: var(--panel-2);
+        font-weight: 800;
+      }
+
+      .input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: var(--panel);
+        color: var(--ink);
+        outline: 0;
+        margin-bottom: 12px;
+      }
+
+      .option-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .option {
+        border-radius: 8px;
+        padding: 12px 8px;
+        background: var(--panel);
+        color: var(--muted);
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .option.active {
+        background: var(--accent);
+        color: white;
+      }
+
+      .addon-option.active {
+        border-color: var(--hot);
+        background: rgba(255, 201, 40, 0.12);
+      }
+
+      .notice {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        z-index: 7;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 13px 14px;
+        background: rgba(17, 9, 24, 0.96);
+        color: var(--ink);
+        font-weight: 800;
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
+      }
+
+      .notice[hidden] {
+        display: none;
+      }
+
+      .status {
+        display: grid;
+        gap: 10px;
+      }
+
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--panel-2);
+      }
+
+      .step.done {
+        color: var(--ink);
+      }
+
+      .step.done .dot {
+        background: var(--green);
+      }
+
+      .side {
+        display: grid;
+        gap: 18px;
+      }
+
+      .side h1 {
+        font-size: clamp(34px, 5vw, 70px);
+        line-height: 0.95;
+      }
+
+      .side p {
+        color: var(--muted);
+        max-width: 600px;
+        font-size: 18px;
+        line-height: 1.6;
+      }
+
+      .side-panel {
+        max-width: 640px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .side-logo {
+        width: 240px;
+        max-width: 70%;
+        border-radius: 8px;
+        background: white;
+        padding: 8px;
+      }
+
+      .metric {
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 16px;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 24px;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          display: block;
+        }
+
+        .stage {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+
+        .side {
+          display: none;
+        }
+
+        .phone {
+          margin: 0 auto;
+          min-height: calc(100vh - 32px);
+        }
+      }
+
+      @media (display-mode: standalone), (max-width: 520px) {
+        body {
+          display: block;
+          background: var(--bg);
+        }
+
+        .stage {
+          width: 100%;
+          min-height: 100vh;
+          padding: 0;
+          display: block;
+        }
+
+        .phone {
+          width: 100%;
+          height: 100vh;
+          min-height: 100vh;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .screen {
+          padding-top: calc(18px + env(safe-area-inset-top));
+          padding-bottom: calc(18px + env(safe-area-inset-bottom));
+        }
+
+        .side {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section class="phone" aria-label="Preview do app Açaí do Fortin">
+        <div>
+          <section class="screen active" data-screen="home">
+            <div class="top">
+              <div class="brand-wrap">
+                <img class="logo-small" src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+                <div class="brand">
+                  <strong>Açaí do Fortin</strong>
+                  <span>Centro • entrega em 28 min</span>
+                </div>
+              </div>
+              <div class="top-actions">
+                <button class="install-chip" id="installButton" type="button" hidden>Instalar app</button>
+                <button class="icon-btn" type="button" data-menu-open>&#9776;</button>
+              </div>
+            </div>
+
+            <div class="hero">
+              <img class="hero-logo" src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+              <div class="hero-copy">
+                <span class="eyebrow">Semana Fortin</span>
+                <h1>Monte seu açaí premium</h1>
+                <p class="muted">Tamanhos, adicionais e entrega rápida.</p>
+                <button class="primary" type="button" data-screen-target="catalogo">Pedir agora</button>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-head">
+                <h2>Mais pedidos</h2>
+                <span class="muted">Prontos para pedir</span>
+              </div>
+              <div class="grid" id="featuredList"></div>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="catalogo">
+            <div class="top">
+              <div class="brand">
+                <strong>Catálogo</strong>
+                <span>Escolha e personalize</span>
+              </div>
+              <button class="icon-btn" type="button" data-menu-open>&#9776;</button>
+            </div>
+            <input class="input" id="searchInput" placeholder="Buscar sabor ou adicional" />
+            <div class="chips">
+              <button class="chip active" data-category="Todos" type="button">Todos</button>
+              <button class="chip" data-category="Tradicionais" type="button">Tradicionais</button>
+              <button class="chip" data-category="Zero açúcar" type="button">Zero açúcar</button>
+              <button class="chip" data-category="Especiais" type="button">Especiais</button>
+            </div>
+            <div class="section grid" id="catalogList"></div>
+          </section>
+
+          <section class="screen" data-screen="montar">
+            <div class="top">
+              <div class="brand">
+                <strong id="builderTitle">Fortin Signature</strong>
+                <span>Monte do seu jeito</span>
+              </div>
+              <button class="icon-btn" type="button" data-screen-target="catalogo">×</button>
+            </div>
+            <div class="hero" style="min-height: 185px">
+              <img class="hero-logo" src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <h2>Tamanho</h2>
+              </div>
+              <div class="option-row" id="sizeOptions"></div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <h2>Adicionais</h2>
+              </div>
+              <div class="grid" id="addonOptions"></div>
+            </div>
+            <div class="section">
+              <button class="primary" style="width:100%" type="button" id="addCartButton">Adicionar ao carrinho</button>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="carrinho">
+            <div class="top">
+              <div class="brand">
+                <strong>Carrinho</strong>
+                <span>Cupom, pagamento e entrega</span>
+              </div>
+              <button class="icon-btn" type="button" data-menu-open>&#9776;</button>
+            </div>
+            <div class="grid" id="cartList"></div>
+            <div class="section">
+              <input class="input" id="couponInput" placeholder="Cupom: FORTIN10" />
+              <div class="option-row">
+                <button class="option active" data-payment="PIX" type="button">PIX</button>
+                <button class="option" data-payment="Cartão" type="button">Cartão</button>
+                <button class="option" data-payment="Dinheiro" type="button">Dinheiro</button>
+              </div>
+            </div>
+            <div class="section card">
+              <div class="metric-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+              <div class="metric-row"><span>Desconto</span><strong id="discount">R$ 0,00</strong></div>
+              <div class="metric-row"><span>Entrega</span><strong>R$ 6,50</strong></div>
+              <div class="metric-row"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+            </div>
+            <div class="section">
+              <button class="primary" style="width:100%" type="button" id="checkoutButton">Finalizar pedido</button>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="pedidos">
+            <div class="top">
+              <div class="brand">
+                <strong>Pedidos</strong>
+                <span>Rastreamento em tempo real</span>
+              </div>
+              <button class="icon-btn" type="button" data-menu-open>&#9776;</button>
+            </div>
+            <div class="card order">
+              <strong id="activeOrderTitle">Pedido #FRT-204</strong>
+              <p id="activeOrderSummary">Fortin Signature • PIX aprovado • 18 min</p>
+              <div class="status">
+                <div class="step done"><span class="dot"></span>Pedido recebido</div>
+                <div class="step done"><span class="dot"></span>Em preparo</div>
+                <div class="step done"><span class="dot"></span>Saiu para entrega</div>
+                <div class="step"><span class="dot"></span>Entregue</div>
+              </div>
+            </div>
+            <div class="section grid">
+              <div class="card order">
+                <strong>Histórico #FRT-188</strong>
+                <p>Fit Purple • entregue • avaliação 5 estrelas</p>
+              </div>
+              <div class="card order">
+                <strong>Histórico #FRT-171</strong>
+                <p>Morango Supreme • entregue • cupom FORTIN10</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+        <aside class="menu-panel" id="menuPanel" aria-label="Menu" hidden>
+          <div class="menu-head">
+            <img class="logo-small" src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+            <button class="icon-btn" type="button" data-menu-close>×</button>
+          </div>
+          <button class="menu-link" data-screen-target="home" type="button">Início</button>
+          <button class="menu-link" data-screen-target="catalogo" type="button">Cardápio</button>
+          <button class="menu-link" data-screen-target="carrinho" type="button">Carrinho</button>
+          <button class="menu-link" data-screen-target="pedidos" type="button">Meus pedidos</button>
+          <button class="menu-link" data-whatsapp type="button">WhatsApp</button>
+        </aside>
+        <div class="notice" id="notice" hidden></div>
+      </section>
+
+      <aside class="side">
+        <img class="side-logo" src="assets/fortin-logo.jpeg" alt="Logo Açaí do Fortin" />
+        <span class="eyebrow">Web app instalável</span>
+        <h1>Açaí do Fortin</h1>
+        <p>
+          App direto para pedido: cardápio, montagem, carrinho, pagamento e acompanhamento. Pronto para instalar no Android e iPhone quando publicado em HTTPS.
+        </p>
+        <div class="side-panel">
+          <div class="metric"><strong>28 min</strong><span class="muted">Entrega média</span></div>
+          <div class="metric"><strong>PIX</strong><span class="muted">Pagamento</span></div>
+          <div class="metric"><strong>Zap</strong><span class="muted">Atendimento</span></div>
+        </div>
+      </aside>
+    </main>
+
+    <script>
+      const products = [
+        { name: "Fortin Signature", category: "Tradicionais", desc: "Açaí, creme ninho, banana e granola.", price: 31.9 },
+        { name: "Fit Purple", category: "Zero açúcar", desc: "Zero açúcar, whey e morango.", price: 34.9 },
+        { name: "Morango Supreme", category: "Especiais", desc: "Calda artesanal e leite em pó.", price: 29.9 }
+      ];
+
+      const addons = [
+        { name: "Banana", price: 2.5 },
+        { name: "Granola", price: 3.5 },
+        { name: "Nutella", price: 6.5 },
+        { name: "Morango", price: 4.5 }
+      ];
+
+      const sizes = [
+        { name: "300ml", price: 18.9 },
+        { name: "500ml", price: 24.9 },
+        { name: "700ml", price: 31.9 }
+      ];
+
+      let selectedProduct = products[0];
+      let selectedSize = sizes[2];
+      let selectedAddons = [addons[1]];
+      let cart = [];
+      let selectedCategory = "Todos";
+      let selectedPayment = "PIX";
+      let couponCode = "";
+      let noticeTimer = undefined;
+      let activeOrder = {
+        code: "FRT-204",
+        summary: "Fortin Signature • PIX aprovado • 18 min"
+      };
+      let deferredInstallPrompt = null;
+
+      const screenNames = ["home", "catalogo", "montar", "carrinho", "pedidos"];
+
+      const money = value => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+      function showScreen(screenName, syncHash = true) {
+        const targetScreen = screenNames.includes(screenName) ? screenName : "home";
+        document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.dataset.screen === targetScreen));
+        if (syncHash && location.hash !== `#${targetScreen}`) {
+          history.replaceState(null, "", `#${targetScreen}`);
+        }
+        closeMenu();
+      }
+
+      function openMenu() {
+        document.getElementById("menuBackdrop").hidden = false;
+        document.getElementById("menuPanel").hidden = false;
+      }
+
+      function closeMenu() {
+        document.getElementById("menuBackdrop").hidden = true;
+        document.getElementById("menuPanel").hidden = true;
+      }
+
+      function showNotice(message) {
+        const notice = document.getElementById("notice");
+        notice.textContent = message;
+        notice.hidden = false;
+        window.clearTimeout(noticeTimer);
+        noticeTimer = window.setTimeout(() => {
+          notice.hidden = true;
+        }, 2200);
+      }
+
+      function filteredProducts() {
+        const term = document.getElementById("searchInput")?.value.toLowerCase() || "";
+        return products.filter(product => {
+          const matchesCategory = selectedCategory === "Todos" || product.category === selectedCategory;
+          const matchesSearch = `${product.name} ${product.desc}`.toLowerCase().includes(term);
+          return matchesCategory && matchesSearch;
+        });
+      }
+
+      function renderProduct(product) {
+        return `
+          <article class="card product">
+            <img class="thumb" src="assets/fortin-product.jpeg" alt="${product.name}" />
+            <div>
+              <strong>${product.name}</strong>
+              <p>${product.desc}</p>
+              <div class="price-row">
+                <span class="price">${money(product.price)}</span>
+                <button class="small-btn" type="button" data-build="${product.name}">Montar</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderProducts() {
+        document.getElementById("featuredList").innerHTML = products.slice(0, 2).map(renderProduct).join("");
+        document.getElementById("catalogList").innerHTML = filteredProducts().map(renderProduct).join("") || `<div class="card"><strong>Nenhum item encontrado</strong><p>Tente outra busca ou categoria.</p></div>`;
+        document.querySelectorAll("[data-category]").forEach(button => button.classList.toggle("active", button.dataset.category === selectedCategory));
+      }
+
+      function renderBuilder() {
+        document.getElementById("builderTitle").textContent = selectedProduct.name;
+        document.getElementById("sizeOptions").innerHTML = sizes.map(size => `
+          <button class="option ${size.name === selectedSize.name ? "active" : ""}" type="button" data-size="${size.name}">
+            ${size.name}<br>${money(size.price)}
+          </button>
+        `).join("");
+        document.getElementById("addonOptions").innerHTML = addons.map(addon => `
+          <button class="card cart-row addon-option ${selectedAddons.some(item => item.name === addon.name) ? "active" : ""}" type="button" data-addon="${addon.name}">
+            <span>${addon.name}</span>
+            <strong>${money(addon.price)}</strong>
+          </button>
+        `).join("");
+      }
+
+      function calculateDiscount(subtotal) {
+        return couponCode.toUpperCase() === "FORTIN10" ? subtotal * 0.1 : 0;
+      }
+
+      function renderCart() {
+        const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+        const discount = calculateDiscount(subtotal);
+        document.getElementById("cartList").innerHTML = cart.length
+          ? cart.map((item, index) => `<div class="card cart-row"><div><strong>${item.name}</strong><p>${item.details}</p></div><div><strong>${money(item.total)}</strong><button class="small-btn" type="button" data-remove-cart="${index}">Remover</button></div></div>`).join("")
+          : `<div class="card"><strong>Carrinho vazio</strong><p>Monte um açaí para continuar.</p></div>`;
+        document.getElementById("subtotal").textContent = money(subtotal);
+        document.getElementById("discount").textContent = money(discount);
+        document.getElementById("total").textContent = money(cart.length ? subtotal - discount + 6.5 : 0);
+        document.querySelectorAll("[data-payment]").forEach(button => button.classList.toggle("active", button.dataset.payment === selectedPayment));
+      }
+
+      function renderOrders() {
+        document.getElementById("activeOrderTitle").textContent = `Pedido #${activeOrder.code}`;
+        document.getElementById("activeOrderSummary").textContent = activeOrder.summary;
+      }
+
+      document.addEventListener("click", event => {
+        const target = event.target.closest("[data-screen-target], [data-build], [data-size], [data-addon], [data-category], [data-payment], [data-remove-cart], [data-whatsapp], [data-menu-open], [data-menu-close], #menuBackdrop");
+        if (!target) return;
+
+        if (target.matches("[data-menu-open]")) openMenu();
+        if (target.matches("[data-menu-close], #menuBackdrop")) closeMenu();
+
+        if (target.dataset.screenTarget) showScreen(target.dataset.screenTarget);
+
+        if (target.dataset.build) {
+          selectedProduct = products.find(product => product.name === target.dataset.build) || products[0];
+          selectedSize = sizes[2];
+          selectedAddons = [addons[1]];
+          renderBuilder();
+          showScreen("montar");
+        }
+
+        if (target.dataset.size) {
+          selectedSize = sizes.find(size => size.name === target.dataset.size) || sizes[0];
+          renderBuilder();
+        }
+
+        if (target.dataset.addon) {
+          const addon = addons.find(item => item.name === target.dataset.addon);
+          if (!addon) return;
+          selectedAddons = selectedAddons.some(item => item.name === addon.name)
+            ? selectedAddons.filter(item => item.name !== addon.name)
+            : [...selectedAddons, addon];
+          renderBuilder();
+        }
+
+        if (target.dataset.category) {
+          selectedCategory = target.dataset.category;
+          renderProducts();
+        }
+
+        if (target.dataset.payment) {
+          selectedPayment = target.dataset.payment;
+          renderCart();
+          showNotice(`Pagamento selecionado: ${selectedPayment}`);
+        }
+
+        if (target.dataset.removeCart !== undefined) {
+          cart.splice(Number(target.dataset.removeCart), 1);
+          renderCart();
+          showNotice("Item removido do carrinho.");
+        }
+
+        if (target.matches("[data-whatsapp]")) {
+          closeMenu();
+          window.open("https://wa.me/5511999990000?text=Oi%20A%C3%A7a%C3%AD%20do%20Fortin%2C%20quero%20fazer%20um%20pedido.", "_blank");
+        }
+      });
+
+      document.getElementById("addCartButton").addEventListener("click", () => {
+        const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
+        cart.push({
+          name: selectedProduct.name,
+          details: `${selectedSize.name} • ${selectedAddons.map(addon => addon.name).join(", ") || "sem adicionais"}`,
+          total: selectedSize.price + addonTotal
+        });
+        renderCart();
+        showScreen("carrinho");
+        showNotice("Item adicionado ao carrinho.");
+      });
+
+      document.getElementById("checkoutButton").addEventListener("click", () => {
+        if (!cart.length) {
+          showNotice("Adicione um item antes de finalizar.");
+          return;
+        }
+        const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+        const discount = calculateDiscount(subtotal);
+        const total = subtotal - discount + 6.5;
+        activeOrder = {
+          code: `FRT-${Math.floor(100 + Math.random() * 900)}`,
+          summary: `${cart.map(item => item.name).join(", ")} • ${selectedPayment} • ${money(total)} • 28 min`
+        };
+        cart = [];
+        renderCart();
+        renderOrders();
+        showScreen("pedidos");
+        showNotice(`Pedido enviado com pagamento em ${selectedPayment}.`);
+      });
+
+      document.getElementById("couponInput").addEventListener("input", event => {
+        couponCode = event.target.value.trim();
+        renderCart();
+        if (couponCode.toUpperCase() === "FORTIN10") {
+          showNotice("Cupom FORTIN10 aplicado.");
+        }
+      });
+
+      document.getElementById("searchInput").addEventListener("input", event => {
+        renderProducts();
+      });
+
+      document.getElementById("installButton").addEventListener("click", async () => {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (!deferredInstallPrompt) {
+          showNotice(isIOS ? "No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início." : "No Chrome: abra o menu e toque em Instalar app.");
+          return;
+        }
+
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        document.getElementById("installButton").hidden = true;
+        showNotice(choice.outcome === "accepted" ? "Instalação iniciada." : "Instalação cancelada.");
+      });
+
+      window.addEventListener("beforeinstallprompt", event => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        document.getElementById("installButton").hidden = false;
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        document.getElementById("installButton").hidden = true;
+        showNotice("App instalado no smartphone.");
+      });
+
+      window.addEventListener("hashchange", () => {
+        showScreen(location.hash.replace("#", ""), false);
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => undefined);
+        });
+      }
+
+      renderProducts();
+      renderBuilder();
+      renderCart();
+      renderOrders();
+      showScreen(location.hash.replace("#", ""), false);
+
+      if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone) {
+        document.getElementById("installButton").hidden = false;
+      }
+    </script>
+  </body>
+</html>

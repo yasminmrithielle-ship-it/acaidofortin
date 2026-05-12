@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fortin-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-acai_do_fortin}
+      POSTGRES_USER: ${POSTGRES_USER:-fortin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fortin123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fortin} -d ${POSTGRES_DB:-acai_do_fortin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: fortin-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fortin}:${POSTGRES_PASSWORD:-fortin123}@postgres:5432/${POSTGRES_DB:-acai_do_fortin}?schema=public
+      PORT: 3333
+    ports:
+      - "3333:3333"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma db push && npm run prisma:seed && npm run dev"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Açaí do Fortin",
+    "slug": "acai-do-fortin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0612"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.acaidofortin.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0612"
+      },
+      "package": "com.acaidofortin.app"
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-location"
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:3333/api"
+    }
+  }
+}
+

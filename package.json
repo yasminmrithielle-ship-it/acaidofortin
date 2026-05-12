@@ -1,0 +1,22 @@
+{
+  "name": "acai-do-fortin",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "mobile": "npm run dev --workspace @fortin/mobile",
+    "admin": "npm run dev --workspace @fortin/admin",
+    "api": "npm run dev --workspace @fortin/api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down -v",
+    "prisma:generate": "npm run prisma:generate --workspace @fortin/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @fortin/api",
+    "prisma:push": "npm run prisma:push --workspace @fortin/api",
+    "prisma:seed": "npm run prisma:seed --workspace @fortin/api"
+  }
+}

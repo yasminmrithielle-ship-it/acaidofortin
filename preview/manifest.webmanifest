@@ -1,0 +1,60 @@
+{
+  "name": "Açaí do Fortin",
+  "short_name": "Fortin",
+  "description": "Cardápio digital do Açaí do Fortin para montar açaí, usar cupom, escolher pagamento e acompanhar pedidos.",
+  "id": "./index.html",
+  "start_url": "./index.html#home",
+  "scope": "./",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0b0710",
+  "theme_color": "#68158c",
+  "categories": ["food", "shopping", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cardápio",
+      "short_name": "Cardápio",
+      "description": "Abrir produtos e tamanhos",
+      "url": "./index.html#catalogo",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Carrinho",
+      "short_name": "Carrinho",
+      "description": "Finalizar pedido",
+      "url": "./index.html#carrinho",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Pedidos",
+      "short_name": "Pedidos",
+      "description": "Acompanhar pedido",
+      "url": "./index.html#pedidos",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
