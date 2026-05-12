@@ -1,5 +1,7 @@
 [build]
-  publish = "preview"
+  base = "preview"
+  publish = "."
+  command = "echo Static PWA deploy"
 
 [[redirects]]
   from = "/*"
