@@ -1,25 +1,9 @@
 [build]
-  base = "preview"
-  publish = "."
-  command = "echo Static PWA deploy"
+  base = "apps/mobile"
+  publish = "dist"
+  command = "npm run build:web"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Cache-Control = "no-cache"
-
-[[headers]]
-  for = "/manifest.webmanifest"
-  [headers.values]
-    Content-Type = "application/manifest+json; charset=utf-8"
-    Cache-Control = "no-cache"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
