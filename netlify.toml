@@ -1,7 +1,11 @@
 [build]
-  base = "apps/mobile"
   publish = "dist"
   command = "npm run build:web"
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200
 
 [[redirects]]
   from = "/*"

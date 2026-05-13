@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChartColumnBig, LayoutDashboard, LogOut, Menu, Package, Percent, ShoppingBasket, X } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import fortinLogo from "../../../mobile/assets/brand/fortin-logo.jpeg";
 
 type Props = {
   onLogout: () => void;
@@ -21,7 +22,7 @@ export function AppShell({ onLogout }: Props) {
     <div className="shell">
       <aside className={sidebarOpen ? "sidebar open" : "sidebar"}>
         <div className="brand">
-          <img alt="Acai do Fortin" className="brand-mark" src="/assets/fortin-logo.jpeg" />
+          <img alt="Acai do Fortin" className="brand-mark" src={fortinLogo} />
           <div>
             <strong>Acai do Fortin</strong>
             <small>Painel premium</small>

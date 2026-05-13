@@ -11,6 +11,7 @@
     "admin": "npm run dev --workspace @fortin/admin",
     "api": "npm run dev --workspace @fortin/api",
     "build": "npm run build --workspaces --if-present",
+    "build:web": "node scripts/build-web.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down -v",

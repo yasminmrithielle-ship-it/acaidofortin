@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 
 import { AppRoutes } from "./routes/app-routes";
 import { ADMIN_PASSWORD, ADMIN_USERNAME, clearStoredToken, getStoredToken, loginAdmin, persistToken } from "./lib/api";
+import fortinLogo from "../../mobile/assets/brand/fortin-logo.jpeg";
 
 const AUTH_KEY = "fortin_admin_access";
 
@@ -51,7 +52,7 @@ export default function App() {
         <div className="login-orb login-orb-a" />
         <div className="login-orb login-orb-b" />
         <form className="login-card" onSubmit={handleLogin}>
-          <img alt="Acai do Fortin" className="login-logo" src="/assets/fortin-logo.jpeg" />
+          <img alt="Acai do Fortin" className="login-logo" src={fortinLogo} />
           <span className="eyebrow">Painel administrativo</span>
           <h1>Acai do Fortin</h1>
           <p>Controle pedidos, promocoes, estoque e relatorios em uma unica operacao.</p>
