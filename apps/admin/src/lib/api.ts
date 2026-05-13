@@ -1,5 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
 const TOKEN_KEY = "fortin_admin_token";
+export const ADMIN_USERNAME = "ADMIN";
+export const ADMIN_PASSWORD = "202051";
 
 export type DashboardSummary = {
   metrics: {

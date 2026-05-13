@@ -68,6 +68,49 @@
         opacity: 0.72;
       }
 
+      body.logged-out .shell,
+      body.logged-out .notice {
+        display: none;
+      }
+
+      .auth-screen {
+        min-height: 100vh;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      body.logged-out .auth-screen {
+        display: flex;
+      }
+
+      .auth-card {
+        width: min(100%, 420px);
+        display: grid;
+        gap: 14px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+        padding: 28px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      .auth-card img {
+        width: 108px;
+        height: 108px;
+        object-fit: contain;
+        border-radius: 18px;
+        background: white;
+        padding: 6px;
+      }
+
+      .auth-error {
+        color: var(--red);
+        font-size: 14px;
+        min-height: 20px;
+      }
+
       .shell {
         min-height: 100vh;
         display: grid;
@@ -474,7 +517,19 @@
       }
     </style>
   </head>
-  <body>
+  <body class="logged-out">
+    <section class="auth-screen">
+      <form class="auth-card" id="loginForm">
+        <img src="assets/fortin-logo.jpeg" alt="Logo Acai do Fortin" />
+        <p class="eyebrow">Painel administrativo</p>
+        <h1>Acai do Fortin</h1>
+        <p class="muted">Acesso restrito ao painel deste repositorio.</p>
+        <input id="loginUsername" placeholder="Usuario" autocomplete="username" />
+        <input id="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" />
+        <div class="auth-error" id="loginError"></div>
+        <button class="primary" type="submit">Entrar no painel</button>
+      </form>
+    </section>
     <main class="shell">
       <aside class="sidebar">
         <div class="brand">
@@ -636,6 +691,9 @@
     <div class="notice" id="notice" hidden></div>
 
     <script>
+      const ADMIN_USERNAME = "ADMIN";
+      const ADMIN_PASSWORD = "202051";
+      const AUTH_KEY = "fortin_admin_preview_auth";
       const STORAGE_KEYS = {
         orders: "fortin_panel_orders",
         products: "fortin_panel_products",
@@ -705,6 +763,23 @@
       let coupons = load(STORAGE_KEYS.coupons, fallbackCoupons);
       let audioEnabled = false;
       let audioContext = null;
+
+      function isAuthenticated() {
+        return localStorage.getItem(AUTH_KEY) === "1";
+      }
+
+      function applyAuthState() {
+        document.body.classList.toggle("logged-out", !isAuthenticated());
+      }
+
+      function setAuthenticated(value) {
+        if (value) {
+          localStorage.setItem(AUTH_KEY, "1");
+        } else {
+          localStorage.removeItem(AUTH_KEY);
+        }
+        applyAuthState();
+      }
 
       function today() {
         return new Date().toISOString().slice(0, 10);
@@ -979,7 +1054,10 @@
           showNotice("Toque de novo pedido ativado.");
         }
 
-        if (target.id === "logoutButton") showNotice("Sessao encerrada nesta previa.");
+        if (target.id === "logoutButton") {
+          setAuthenticated(false);
+          showNotice("Sessao encerrada.");
+        }
       });
 
       document.getElementById("productPrice").addEventListener("input", updateProductProfit);
@@ -1038,6 +1116,23 @@
         showNotice("Cupom cadastrado.");
       });
 
+      document.getElementById("loginForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const username = document.getElementById("loginUsername").value.trim().toUpperCase();
+        const password = document.getElementById("loginPassword").value;
+        const error = document.getElementById("loginError");
+
+        if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+          error.textContent = "Usuario ou senha invalidos.";
+          return;
+        }
+
+        error.textContent = "";
+        document.getElementById("loginPassword").value = "";
+        setAuthenticated(true);
+      });
+
+      applyAuthState();
       renderAll();
     </script>
   </body>
