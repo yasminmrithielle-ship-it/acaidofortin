@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
-import { AppState, Linking } from "react-native";
+import { AppState } from "react-native";
 import { PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
 
-import { createOrder, fetchCatalog, fetchNotifications, fetchOrders, fetchProfile, registerUser, signIn, socialSignIn, validateCoupon } from "../services/api";
+import { DELIVERY_FEE, createOrder, fetchCatalog, fetchNotifications, fetchOrders, fetchProfile, registerUser, signIn, socialSignIn, validateCoupon } from "../services/api";
 import { getCurrentLocationLabel } from "../services/location";
 import { connectRealtime, disconnectRealtime } from "../services/realtime";
-import { AppNotification, CartItem, CatalogPayload, OrderRecord, Product, ProductOption, Profile } from "../types/app";
+import { AppNotification, CartItem, CatalogPayload, DeliveryAddressInput, OrderRecord, Product, ProductOption, Profile } from "../types/app";
 
 type PaymentMethod = "PIX" | "CARD" | "CASH";
 
@@ -28,9 +28,8 @@ type AppContextValue = {
   updateCartItemQuantity: (itemId: string, delta: number) => void;
   removeCartItem: (itemId: string) => void;
   applyCoupon: (code: string, subtotal: number) => Promise<number>;
-  checkout: (paymentMethod: PaymentMethod, couponCode?: string) => Promise<void>;
+  checkout: (paymentMethod: PaymentMethod, couponCode?: string, deliveryAddress?: DeliveryAddressInput) => Promise<OrderRecord | null>;
   requestLocation: () => Promise<void>;
-  openWhatsApp: () => Promise<void>;
 };
 
 const STORAGE_KEYS = {
@@ -230,9 +229,9 @@ export function AppProvider({ children }: PropsWithChildren) {
     return result.valid ? result.discount : 0;
   }
 
-  async function checkout(paymentMethod: PaymentMethod, couponCode?: string) {
+  async function checkout(paymentMethod: PaymentMethod, couponCode?: string, deliveryAddress?: DeliveryAddressInput) {
     if (!token || !profile || cart.length === 0) {
-      return;
+      return null;
     }
 
     const subtotal = cart.reduce((total, item) => {
@@ -243,11 +242,12 @@ export function AppProvider({ children }: PropsWithChildren) {
     const discount = couponCode ? await applyCoupon(couponCode, subtotal) : 0;
     const payload = {
       addressId: profile.addresses[0]?.id,
+      deliveryAddress,
       couponCode: couponCode || undefined,
       paymentMethod,
       subtotal,
       discount,
-      total: subtotal - discount + 6.5,
+      total: subtotal - discount + DELIVERY_FEE,
       items: cart.map((item) => ({
         productId: item.product.id,
         productName: item.product.name,
@@ -263,15 +263,12 @@ export function AppProvider({ children }: PropsWithChildren) {
     const order = await createOrder(token, payload);
     setOrders((current) => [order, ...current]);
     setCart([]);
+    return order;
   }
 
   async function requestLocation() {
     const label = await getCurrentLocationLabel();
     setLocationLabel(label);
-  }
-
-  async function openWhatsApp() {
-    await Linking.openURL("https://wa.me/5511999990000?text=Oi%20A%C3%A7a%C3%AD%20do%20Fortin%2C%20preciso%20de%20ajuda%20com%20meu%20pedido.");
   }
 
   return (
@@ -295,8 +292,7 @@ export function AppProvider({ children }: PropsWithChildren) {
         removeCartItem,
         applyCoupon,
         checkout,
-        requestLocation,
-        openWhatsApp
+        requestLocation
       }}
     >
       {children}

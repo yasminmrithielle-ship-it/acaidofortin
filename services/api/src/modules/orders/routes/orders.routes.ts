@@ -9,7 +9,7 @@ import { createOrderSchema, updateOrderStatusSchema } from "../orders.schemas";
 export const ordersRoutes = Router();
 
 ordersRoutes.get("/me", authenticate(), ordersController.listMine);
+ordersRoutes.get("/track/:code", ordersController.track);
 ordersRoutes.get("/", authenticate([UserRole.ADMIN]), ordersController.listAll);
 ordersRoutes.post("/", authenticate(), validateRequest(createOrderSchema), ordersController.create);
 ordersRoutes.patch("/:id/status", authenticate([UserRole.ADMIN]), validateRequest(updateOrderStatusSchema), ordersController.updateStatus);
-

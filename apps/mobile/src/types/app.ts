@@ -64,8 +64,20 @@ export type CartItem = {
   notes?: string;
 };
 
+export type DeliveryAddressInput = {
+  zipCode?: string;
+  street: string;
+  number: string;
+  referencePoint?: string;
+  phone: string;
+  neighborhood: string;
+  city?: string;
+  state?: string;
+};
+
 export type OrderRecord = {
   id: string;
+  publicCode?: string;
   status: "PENDING" | "CONFIRMED" | "PREPARING" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELED";
   paymentMethod: "PIX" | "CARD" | "CASH";
   paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";

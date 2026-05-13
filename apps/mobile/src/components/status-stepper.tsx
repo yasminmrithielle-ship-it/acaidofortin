@@ -3,6 +3,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "../theme/theme";
 
 const steps = ["PENDING", "CONFIRMED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"];
+const labels: Record<string, string> = {
+  PENDING: "Pedido recebido",
+  CONFIRMED: "Confirmado",
+  PREPARING: "Em preparo",
+  OUT_FOR_DELIVERY: "Saiu para entrega",
+  DELIVERED: "Entregue",
+  CANCELED: "Cancelado"
+};
 
 type Props = {
   status: string;
@@ -19,7 +27,7 @@ export function StatusStepper({ status }: Props) {
         return (
           <View style={styles.step} key={step}>
             <View style={[styles.dot, { backgroundColor: active ? palette.accentNeon : palette.cardSoft }]} />
-            <Text style={[styles.label, { color: active ? palette.text : palette.muted }]}>{step.replaceAll("_", " ")}</Text>
+            <Text style={[styles.label, { color: active ? palette.text : palette.muted }]}>{labels[step] ?? step}</Text>
           </View>
         );
       })}
@@ -46,4 +54,3 @@ const styles = StyleSheet.create({
     fontSize: 12
   }
 });
-

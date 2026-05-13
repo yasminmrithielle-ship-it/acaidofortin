@@ -20,6 +20,11 @@ export const ordersController = {
     return response.json(result);
   },
 
+  async track(request: Request, response: Response) {
+    const result = await ordersService.trackByCode(String(request.params.code));
+    return response.json(result);
+  },
+
   async updateStatus(request: Request, response: Response) {
     const result = await ordersService.updateStatus(String(request.params.id), request.body);
     return response.json(result);

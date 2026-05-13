@@ -28,7 +28,6 @@ const menuItems: Array<{ key: ScreenKey; label: string; icon: string }> = [
 
 function OrderAppShell({ onOpenProduct }: { onOpenProduct: (product: Product) => void }) {
   const { palette } = useAppTheme();
-  const { openWhatsApp } = useApp();
   const [currentScreen, setCurrentScreen] = useState<ScreenKey>("home");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -80,10 +79,6 @@ function OrderAppShell({ onOpenProduct }: { onOpenProduct: (product: Product) =>
               <Text style={styles.drawerLabel}>{item.label}</Text>
             </Pressable>
           ))}
-          <Pressable onPress={openWhatsApp} style={[styles.drawerItem, { backgroundColor: palette.cardSoft }]}>
-            <MaterialCommunityIcons color="#fff" name="whatsapp" size={20} />
-            <Text style={styles.drawerLabel}>WhatsApp</Text>
-          </Pressable>
         </View>
       </Modal>
     </SafeAreaView>

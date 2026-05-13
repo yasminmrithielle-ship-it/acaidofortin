@@ -15,7 +15,7 @@ type Props = {
 };
 
 export function HomeScreen({ onOpenProduct }: Props) {
-  const { catalog, locationLabel, requestLocation, openWhatsApp } = useApp();
+  const { catalog, locationLabel, requestLocation } = useApp();
   const { palette } = useAppTheme();
   const entrance = useRef(new Animated.Value(0)).current;
   const featured = catalog.products.filter((product) => product.isFeatured);
@@ -49,39 +49,14 @@ export function HomeScreen({ onOpenProduct }: Props) {
       >
         <View style={[styles.hero, { backgroundColor: palette.card }]}>
           <Image source={fortinLogo} style={styles.logo} />
-          <Text style={[styles.eyebrow, { color: palette.accentNeon }]}>AÇAÍ ARTESANAL PREMIUM</Text>
-          <Text style={[styles.heroTitle, { color: palette.text }]}>Seu bowl perfeito, do seu jeito, entregue rápido.</Text>
+          <Text style={[styles.eyebrow, { color: palette.accentNeon }]}>ACAI ARTESANAL PREMIUM</Text>
+          <Text style={[styles.heroTitle, { color: palette.text }]}>Seu bowl perfeito, do seu jeito, entregue rapido.</Text>
           <Pressable onPress={requestLocation} style={[styles.locationChip, { backgroundColor: palette.cardSoft }]}>
             <MaterialCommunityIcons color={palette.accentNeon} name="map-marker-radius" size={18} />
             <Text style={[styles.locationLabel, { color: palette.text }]}>{locationLabel}</Text>
           </Pressable>
         </View>
       </Animated.View>
-
-      <View style={styles.sectionGap}>
-        <SectionHeader subtitle="Combos, promoções e ativações da semana" title="Destaques Fortin" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.bannerRow}>
-            {catalog.banners.map((banner) => (
-              <PromoBanner banner={banner} key={banner.id} />
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.quickActions}>
-        <Pressable onPress={openWhatsApp} style={[styles.quickAction, { backgroundColor: palette.card }]}>
-          <MaterialCommunityIcons color={palette.accentNeon} name="whatsapp" size={22} />
-          <Text style={[styles.quickActionLabel, { color: palette.text }]}>Chat e suporte</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => Alert.alert("Cupons disponiveis", couponMessage)}
-          style={[styles.quickAction, { backgroundColor: palette.card }]}
-        >
-          <MaterialCommunityIcons color={palette.accentNeon} name="ticket-percent-outline" size={22} />
-          <Text style={[styles.quickActionLabel, { color: palette.text }]}>Cupons e promoções</Text>
-        </Pressable>
-      </View>
 
       <View style={styles.sectionGap}>
         <SectionHeader subtitle="Monte o bowl com tamanhos e adicionais" title="Mais pedidos" />
@@ -92,6 +67,27 @@ export function HomeScreen({ onOpenProduct }: Props) {
             product={product}
           />
         ))}
+      </View>
+
+      <View style={styles.sectionGap}>
+        <SectionHeader subtitle="Combos, promocoes e ativacoes da semana" title="Destaques Fortin" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.bannerRow}>
+            {catalog.banners.map((banner) => (
+              <PromoBanner banner={banner} key={banner.id} />
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+
+      <View style={styles.quickActions}>
+        <Pressable
+          onPress={() => Alert.alert("Cupons disponiveis", couponMessage)}
+          style={[styles.quickAction, { backgroundColor: palette.card }]}
+        >
+          <MaterialCommunityIcons color={palette.accentNeon} name="ticket-percent-outline" size={22} />
+          <Text style={[styles.quickActionLabel, { color: palette.text }]}>Cupons e promocoes</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );

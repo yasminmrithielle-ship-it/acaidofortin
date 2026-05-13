@@ -58,7 +58,14 @@ function escapeHtml(value: unknown) {
 function formatAddress(order: OrderRecord) {
   if (!order.address) return "Endereco nao informado";
 
-  return `${order.address.street}, ${order.address.number} - ${order.address.neighborhood}, ${order.address.city}/${order.address.state}`;
+  const referencePoint = order.address.referencePoint ?? order.address.complement;
+  const address = `${order.address.street}, ${order.address.number} - ${order.address.neighborhood}, ${order.address.city}/${order.address.state}`;
+
+  return referencePoint ? `${address} - Ref: ${referencePoint}` : address;
+}
+
+function getOrderCode(order: OrderRecord) {
+  return order.publicCode ?? `FRT-${order.id.slice(-6).toUpperCase()}`;
 }
 
 function printOrder(order: OrderRecord) {
@@ -89,7 +96,7 @@ function printOrder(order: OrderRecord) {
     <html lang="pt-BR">
       <head>
         <meta charset="utf-8" />
-        <title>Pedido ${escapeHtml(order.id.slice(-6))}</title>
+        <title>Pedido ${escapeHtml(getOrderCode(order))}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 0; padding: 18px; color: #111; }
           h1 { font-size: 20px; margin: 0 0 4px; }
@@ -103,7 +110,7 @@ function printOrder(order: OrderRecord) {
       </head>
       <body>
         <h1>Acai do Fortin</h1>
-        <p><strong>Pedido:</strong> #${escapeHtml(order.id.slice(-6))}</p>
+        <p><strong>Pedido:</strong> #${escapeHtml(getOrderCode(order))}</p>
         <p><strong>Cliente:</strong> ${escapeHtml(order.user?.name ?? "Cliente")}</p>
         <p><strong>Telefone:</strong> ${escapeHtml(order.user?.phone ?? "-")}</p>
         <p><strong>Endereco:</strong> ${escapeHtml(formatAddress(order))}</p>
@@ -208,7 +215,7 @@ export function OrdersPage({ token }: Props) {
           <article className="order-card" key={order.id}>
             <div className="order-card-head">
               <div>
-                <strong>#{order.id.slice(-6)}</strong>
+                <strong>#{getOrderCode(order)}</strong>
                 <p>{order.user?.name ?? "Cliente"}</p>
               </div>
               <StatusPill label={order.status} />

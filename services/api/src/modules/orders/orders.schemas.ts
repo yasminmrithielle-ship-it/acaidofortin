@@ -3,6 +3,16 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   body: z.object({
     addressId: z.string().optional(),
+    deliveryAddress: z.object({
+      zipCode: z.string().optional(),
+      street: z.string().min(1),
+      number: z.string().min(1),
+      referencePoint: z.string().optional(),
+      phone: z.string().min(8),
+      neighborhood: z.string().min(1),
+      city: z.string().default("Belo Horizonte"),
+      state: z.string().default("MG")
+    }).optional(),
     couponCode: z.string().optional(),
     paymentMethod: z.enum(["PIX", "CARD", "CASH"]),
     changeFor: z.number().min(0).optional(),
@@ -31,4 +41,3 @@ export const updateOrderStatusSchema = z.object({
     estimatedMinutes: z.number().int().min(0).optional()
   })
 });
-

@@ -5,6 +5,7 @@ import { AppNotification, BannerItem, CatalogPayload, CouponItem, OrderRecord, P
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3333/api";
 const CATALOG_CACHE_KEY = "fortin_catalog_cache";
+export const DELIVERY_FEE = 0;
 
 const sizeOptions = [
   { id: "300", name: "300ml", price: 18.9 },
@@ -127,18 +128,18 @@ const fallbackProfile: Profile = {
   id: "profile-demo",
   name: "Cliente Demo",
   email: "cliente@fortin.com",
-  phone: "11988887777",
+  phone: "31988887777",
   avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
   addresses: [
     {
       id: "address-demo",
       label: "Casa",
-      street: "Rua do Açaí",
-      number: "140",
-      neighborhood: "Centro",
-      city: "São Paulo",
-      state: "SP",
-      zipCode: "01000-000",
+      street: "Rua Jose Pedro de Brito",
+      number: "407",
+      neighborhood: "Vila Santa Rita",
+      city: "Belo Horizonte",
+      state: "MG",
+      zipCode: "30640-110",
       isDefault: true
     }
   ]
@@ -147,13 +148,14 @@ const fallbackProfile: Profile = {
 const fallbackOrders: OrderRecord[] = [
   {
     id: "fortin-order-demo",
+    publicCode: "FRT-DEMO",
     status: "OUT_FOR_DELIVERY",
     paymentMethod: "PIX",
     paymentStatus: "PAID",
     subtotal: 31.9,
     discount: 3.19,
-    deliveryFee: 6.5,
-    total: 35.21,
+    deliveryFee: DELIVERY_FEE,
+    total: 28.71,
     estimatedMinutes: 18,
     createdAt: new Date().toISOString(),
     items: [
@@ -346,6 +348,35 @@ export async function fetchOrders(token: string) {
   }
 }
 
+export async function trackOrder(code: string) {
+  try {
+    const order = await request<any>(`/orders/track/${encodeURIComponent(code)}`);
+    return {
+      ...order,
+      subtotal: Number(order.subtotal),
+      discount: Number(order.discount),
+      deliveryFee: Number(order.deliveryFee),
+      total: Number(order.total),
+      items: order.items.map((item: any) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice)
+      }))
+    } as OrderRecord;
+  } catch {
+    const normalized = code.replace(/^#/, "").replace(/^FRT-/i, "").trim().toLowerCase();
+    const fallbackOrder = fallbackOrders.find((order) => order.id.toLowerCase().endsWith(normalized));
+
+    if (fallbackOrder) {
+      return {
+        ...fallbackOrder,
+        publicCode: `FRT-${fallbackOrder.id.slice(-6).toUpperCase()}`
+      };
+    }
+
+    throw new Error("Pedido nao encontrado");
+  }
+}
+
 export async function fetchNotifications(token: string) {
   try {
     return await request<AppNotification[]>("/notifications/me", {}, token);
@@ -392,13 +423,14 @@ export async function createOrder(token: string, payload: Record<string, any>) {
   } catch {
     const fallbackOrder: OrderRecord = {
       id: `demo-${Date.now()}`,
+      publicCode: `FRT-${Date.now().toString().slice(-6)}`,
       status: "PENDING",
       paymentMethod: payload.paymentMethod,
       paymentStatus: payload.paymentMethod === "CARD" ? "PAID" : "PENDING",
       subtotal: payload.subtotal ?? 32,
       discount: payload.discount ?? 0,
-      deliveryFee: 6.5,
-      total: payload.total ?? 38.5,
+      deliveryFee: DELIVERY_FEE,
+      total: payload.total ?? 32,
       estimatedMinutes: 32,
       createdAt: new Date().toISOString(),
       items: payload.items.map((item: any) => ({

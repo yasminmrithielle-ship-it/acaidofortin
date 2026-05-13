@@ -114,7 +114,7 @@ export const couponsService = {
     });
   },
 
-  async validate(code: string, subtotal: number, deliveryFee = 6.5) {
+  async validate(code: string, subtotal: number, deliveryFee = 0) {
     const coupon = await prisma.coupon.findUnique({
       where: { code: code.toUpperCase() }
     });

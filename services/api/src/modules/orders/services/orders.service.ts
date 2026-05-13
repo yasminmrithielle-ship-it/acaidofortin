@@ -4,6 +4,7 @@ import { AppError } from "../../../lib/errors";
 import { cache } from "../../../lib/cache";
 import { emitOrderUpdated } from "../../../lib/socket";
 import { prisma } from "../../../lib/prisma";
+import { formatOrderCode, notifyWhatsAppOrder } from "../../../lib/whatsapp";
 
 type ProductOption = {
   id: string;
@@ -13,6 +14,16 @@ type ProductOption = {
 
 type CreateOrderInput = {
   addressId?: string;
+  deliveryAddress?: {
+    zipCode?: string;
+    street: string;
+    number: string;
+    referencePoint?: string;
+    phone: string;
+    neighborhood: string;
+    city?: string;
+    state?: string;
+  };
   couponCode?: string;
   paymentMethod: PaymentMethod;
   changeFor?: number;
@@ -55,9 +66,16 @@ function calculateCouponDiscount(params: {
   return params.value;
 }
 
+function withPublicCode<T extends { id: string }>(order: T) {
+  return {
+    ...order,
+    publicCode: formatOrderCode(order.id)
+  };
+}
+
 export const ordersService = {
   async create(userId: string, input: CreateOrderInput) {
-    const deliveryFee = 6.5;
+    const deliveryFee = 0;
 
     const productIds = input.items.map((item) => item.productId);
     const products = await prisma.product.findMany({
@@ -71,7 +89,7 @@ export const ordersService = {
       throw new AppError(400, "Um ou mais produtos não estão disponíveis");
     }
 
-    const address = input.addressId
+    const address = input.addressId && !input.deliveryAddress
       ? await prisma.address.findFirst({
           where: {
             id: input.addressId,
@@ -80,7 +98,7 @@ export const ordersService = {
         })
       : null;
 
-    if (input.addressId && !address) {
+    if (input.addressId && !input.deliveryAddress && !address) {
       throw new AppError(400, "Endereço inválido");
     }
 
@@ -163,10 +181,45 @@ export const ordersService = {
     const initialPaymentStatus = input.paymentMethod === PaymentMethod.CARD ? PaymentStatus.PAID : PaymentStatus.PENDING;
 
     const order = await prisma.$transaction(async (transaction) => {
+      let orderAddressId = input.deliveryAddress ? undefined : input.addressId;
+
+      if (input.deliveryAddress) {
+        await transaction.user.update({
+          where: { id: userId },
+          data: {
+            phone: input.deliveryAddress.phone
+          }
+        });
+
+        const createdAddress = await transaction.address.create({
+          data: {
+            userId,
+            label: "Entrega",
+            street: input.deliveryAddress.street,
+            number: input.deliveryAddress.number,
+            complement: input.deliveryAddress.referencePoint,
+            neighborhood: input.deliveryAddress.neighborhood,
+            city: input.deliveryAddress.city || "Belo Horizonte",
+            state: input.deliveryAddress.state || "MG",
+            zipCode: input.deliveryAddress.zipCode || "",
+            isDefault: false
+          }
+        });
+
+        orderAddressId = createdAddress.id;
+      } else if (address) {
+        orderAddressId = address.id;
+      }
+
+      const orderNotes = [
+        input.notes,
+        input.deliveryAddress?.referencePoint ? `Ponto de referencia: ${input.deliveryAddress.referencePoint}` : null
+      ].filter(Boolean).join("\n");
+
       const createdOrder = await transaction.order.create({
         data: {
           userId,
-          addressId: input.addressId,
+          addressId: orderAddressId,
           couponId: couponRecord?.id,
           status: OrderStatus.PENDING,
           paymentMethod: input.paymentMethod,
@@ -175,7 +228,7 @@ export const ordersService = {
           discount,
           deliveryFee,
           total,
-          notes: input.notes,
+          notes: orderNotes || undefined,
           deliveryLat: input.deliveryLat,
           deliveryLng: input.deliveryLng,
           items: {
@@ -203,7 +256,13 @@ export const ordersService = {
         include: {
           items: true,
           payment: true,
-          address: true
+          address: true,
+          user: {
+            select: {
+              name: true,
+              phone: true
+            }
+          }
         }
       });
 
@@ -248,7 +307,7 @@ export const ordersService = {
         data: {
           userId,
           title: "Pedido recebido",
-          message: `Seu pedido #${createdOrder.id.slice(-6)} entrou na fila de preparação.`,
+          message: `Seu pedido #${formatOrderCode(createdOrder.id)} entrou na fila de preparacao.`,
           type: NotificationType.ORDER,
           metadata: {
             orderId: createdOrder.id,
@@ -267,11 +326,14 @@ export const ordersService = {
     });
     cache.del("dashboard:summary");
 
-    return order;
+    const publicOrder = withPublicCode(order);
+    await notifyWhatsAppOrder("created", publicOrder);
+
+    return publicOrder;
   },
 
   async listMyOrders(userId: string) {
-    return prisma.order.findMany({
+    const orders = await prisma.order.findMany({
       where: { userId },
       include: {
         items: true,
@@ -280,10 +342,12 @@ export const ordersService = {
       },
       orderBy: { createdAt: "desc" }
     });
+
+    return orders.map(withPublicCode);
   },
 
   async listAll(status?: OrderStatus) {
-    return prisma.order.findMany({
+    const orders = await prisma.order.findMany({
       where: status ? { status } : undefined,
       include: {
         user: {
@@ -298,6 +362,42 @@ export const ordersService = {
       },
       orderBy: { createdAt: "desc" }
     });
+
+    return orders.map(withPublicCode);
+  },
+
+  async trackByCode(rawCode: string) {
+    const normalizedCode = rawCode
+      .replace(/^#/, "")
+      .replace(/^FRT-/i, "")
+      .replace(/[^a-z0-9]/gi, "")
+      .toLowerCase();
+
+    if (normalizedCode.length < 3) {
+      throw new AppError(400, "Numero do pedido invalido");
+    }
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id: {
+          endsWith: normalizedCode
+        }
+      },
+      include: {
+        items: true,
+        payment: true,
+        address: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+
+    if (!order) {
+      throw new AppError(404, "Pedido nao encontrado");
+    }
+
+    return withPublicCode(order);
   },
 
   async updateStatus(orderId: string, data: {
@@ -321,15 +421,23 @@ export const ordersService = {
           : undefined
       },
       include: {
-        payment: true
+        payment: true,
+        items: true,
+        address: true,
+        user: {
+          select: {
+            name: true,
+            phone: true
+          }
+        }
       }
     });
 
     await prisma.notification.create({
       data: {
         userId: order.userId,
-        title: "Atualização do pedido",
-        message: `Seu pedido agora está como ${order.status}.`,
+        title: "Atualizacao do pedido",
+        message: `Seu pedido #${formatOrderCode(order.id)} agora esta como ${order.status}.`,
         type: NotificationType.ORDER,
         metadata: {
           orderId: order.id,
@@ -345,6 +453,9 @@ export const ordersService = {
     });
     cache.del("dashboard:summary");
 
-    return order;
+    const publicOrder = withPublicCode(order);
+    await notifyWhatsAppOrder("status_updated", publicOrder);
+
+    return publicOrder;
   }
 };

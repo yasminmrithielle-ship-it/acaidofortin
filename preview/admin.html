@@ -650,9 +650,45 @@
       ];
 
       const fallbackOrders = [
-        { id: "FRT-204", customer: "Pedido balcao", status: "Em preparo", total: 38.4, paymentMethod: "PIX", paymentStatus: "Pago", date: today(), items: [{ quantity: 1, productName: "Fortin Signature" }] },
-        { id: "FRT-205", customer: "Entrega bairro Centro", status: "Recebido", total: 52.9, paymentMethod: "Cartao", paymentStatus: "Pago", date: today(), items: [{ quantity: 2, productName: "Morango Supreme" }] },
-        { id: "FRT-206", customer: "WhatsApp", status: "Saiu para entrega", total: 31.9, paymentMethod: "Dinheiro", paymentStatus: "Pendente", date: yesterday(), items: [{ quantity: 1, productName: "Fit Purple" }] }
+        {
+          id: "FRT-204",
+          customer: "Cliente demo",
+          phone: "31988887777",
+          status: "Em preparo",
+          total: 38.4,
+          deliveryFee: 0,
+          paymentMethod: "PIX",
+          paymentStatus: "Pago",
+          date: today(),
+          address: { street: "Rua Jose Pedro de Brito", number: "407", neighborhood: "Vila Santa Rita", referencePoint: "Proximo a loja", city: "Belo Horizonte", state: "MG" },
+          items: [{ quantity: 1, productName: "Fortin Signature" }]
+        },
+        {
+          id: "FRT-205",
+          customer: "Entrega Barreiro",
+          phone: "31977776666",
+          status: "Recebido",
+          total: 52.9,
+          deliveryFee: 0,
+          paymentMethod: "Cartao",
+          paymentStatus: "Pago",
+          date: today(),
+          address: { street: "Rua do Cliente", number: "82", neighborhood: "Barreiro", referencePoint: "Portao azul", city: "Belo Horizonte", state: "MG" },
+          items: [{ quantity: 2, productName: "Morango Supreme" }]
+        },
+        {
+          id: "FRT-206",
+          customer: "Cliente app",
+          phone: "31966665555",
+          status: "Saiu para entrega",
+          total: 31.9,
+          deliveryFee: 0,
+          paymentMethod: "Dinheiro",
+          paymentStatus: "Pendente",
+          date: yesterday(),
+          address: { street: "Rua da Entrega", number: "10", neighborhood: "Milionarios", referencePoint: "Esquina", city: "Belo Horizonte", state: "MG" },
+          items: [{ quantity: 1, productName: "Fit Purple" }]
+        }
       ];
 
       const fallbackBanners = [
@@ -713,6 +749,12 @@
         return "";
       }
 
+      function formatAddress(order) {
+        if (!order.address) return "Endereco nao informado";
+        const address = `${order.address.street}, ${order.address.number} - ${order.address.neighborhood}`;
+        return order.address.referencePoint ? `${address} - Ref: ${order.address.referencePoint}` : address;
+      }
+
       function playOrderSound() {
         audioContext = audioContext || new AudioContext();
         if (audioContext.state === "suspended") audioContext.resume();
@@ -749,8 +791,9 @@
             <div class="row">
               <div>
                 <strong>${order.id}</strong>
-                <p class="muted">${order.customer} - ${money(order.total)}</p>
+                <p class="muted">${order.customer} - ${order.phone || "sem telefone"} - ${money(order.total)}</p>
                 <p class="muted">${order.items.map((item) => `${item.quantity}x ${item.productName}`).join(", ")}</p>
+                <p class="muted">${formatAddress(order)} - entrega gratis ate 6 km</p>
                 <p class="muted">${order.paymentMethod} - ${order.paymentStatus} - ${order.date}</p>
               </div>
               <div class="actions">
@@ -849,6 +892,9 @@
           <h1>Acai do Fortin</h1>
           <p><strong>Pedido:</strong> ${order.id}</p>
           <p><strong>Cliente:</strong> ${order.customer}</p>
+          <p><strong>Telefone:</strong> ${order.phone || "-"}</p>
+          <p><strong>Endereco:</strong> ${formatAddress(order)}</p>
+          <p><strong>Entrega:</strong> Gratis ate 6 km</p>
           <p><strong>Pagamento:</strong> ${order.paymentMethod} - ${order.paymentStatus}</p>
           <p><strong>Data:</strong> ${order.date}</p>
           <hr />
@@ -910,11 +956,14 @@
           const nextOrder = {
             id: `FRT-${Math.floor(300 + Math.random() * 600)}`,
             customer: "Pedido recebido pelo app",
+            phone: "31988887777",
             status: "Recebido",
             total: products[0]?.price || 31.9,
+            deliveryFee: 0,
             paymentMethod: "PIX",
             paymentStatus: "Pago",
             date: today(),
+            address: { street: "Rua do Cliente", number: "100", neighborhood: "Vila Santa Rita", referencePoint: "Casa", city: "Belo Horizonte", state: "MG" },
             items: [{ quantity: 1, productName: products[0]?.name || "Fortin Signature" }]
           };
           orders.unshift(nextOrder);

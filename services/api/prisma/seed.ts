@@ -14,7 +14,7 @@ async function main() {
     create: {
       name: "Equipe Fortin",
       email: "admin@fortin.com",
-      phone: "11999990000",
+      phone: "31999990000",
       passwordHash: adminPassword,
       role: UserRole.ADMIN
     }
@@ -26,7 +26,7 @@ async function main() {
     create: {
       name: "Cliente Demo",
       email: "cliente@fortin.com",
-      phone: "11988887777",
+      phone: "31988887777",
       passwordHash: customerPassword,
       role: UserRole.CUSTOMER,
       loyaltyAccount: {
@@ -46,14 +46,14 @@ async function main() {
       id: "fortin-address-demo",
       userId: customer.id,
       label: "Casa",
-      street: "Rua do Açaí",
-      number: "140",
-      neighborhood: "Centro",
-      city: "São Paulo",
-      state: "SP",
-      zipCode: "01000-000",
-      latitude: -23.55052,
-      longitude: -46.63331,
+      street: "Rua Jose Pedro de Brito",
+      number: "407",
+      neighborhood: "Vila Santa Rita",
+      city: "Belo Horizonte",
+      state: "MG",
+      zipCode: "30640-110",
+      latitude: -19.98386,
+      longitude: -44.01537,
       isDefault: true
     }
   });
@@ -181,8 +181,8 @@ async function main() {
         paymentStatus: PaymentStatus.PAID,
         subtotal: 31.9,
         discount: 3.19,
-        deliveryFee: 6.5,
-        total: 35.21,
+        deliveryFee: 0,
+        total: 28.71,
         estimatedMinutes: 18,
         items: {
           create: {
@@ -196,7 +196,7 @@ async function main() {
         },
         payment: {
           create: {
-            amount: 35.21,
+            amount: 28.71,
             method: PaymentMethod.PIX,
             status: PaymentStatus.PAID,
             pixCode: "PIX-DEMO-FORTIN-001",

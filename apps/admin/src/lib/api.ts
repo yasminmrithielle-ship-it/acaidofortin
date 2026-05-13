@@ -20,6 +20,7 @@ export type DashboardSummary = {
 
 export type OrderRecord = {
   id: string;
+  publicCode?: string;
   status: string;
   total: number;
   createdAt: string;
@@ -33,9 +34,12 @@ export type OrderRecord = {
   address?: {
     street: string;
     number: string;
+    complement?: string;
+    referencePoint?: string;
     neighborhood: string;
     city: string;
     state: string;
+    zipCode?: string;
   } | null;
   items: Array<{
     id: string;
@@ -222,6 +226,7 @@ export const fallbackDashboard: DashboardSummary = {
 export const fallbackOrders: OrderRecord[] = [
   {
     id: "fortin-order-001",
+    publicCode: "FRT-0001",
     status: "PREPARING",
     total: 34.9,
     createdAt: new Date().toISOString(),
