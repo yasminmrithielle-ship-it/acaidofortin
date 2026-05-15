@@ -8,7 +8,6 @@ const root = process.cwd();
 const deployDir = resolve(root, "dist");
 const mobileDir = resolve(root, "apps/mobile");
 const adminDir = resolve(root, "apps/admin");
-const apiDir = resolve(root, "services/api");
 const androidAssetsDir = resolve(root, "android-apk/assets");
 const mobileDistDir = resolve(mobileDir, "dist");
 const adminDistDir = resolve(adminDir, "dist");
@@ -61,7 +60,6 @@ runNodeScript(viteBin, ["build"], mobileDir);
 copyMobileBuildToAndroidAssets();
 runNodeScript(tscBin, ["-b"], adminDir);
 runNodeScript(viteBin, ["build"], adminDir);
-runNodeScript(tscBin, ["-p", "tsconfig.json"], apiDir);
 
 rmSync(deployDir, { recursive: true, force: true });
 copyDirectoryContents(mobileDistDir, deployDir);
