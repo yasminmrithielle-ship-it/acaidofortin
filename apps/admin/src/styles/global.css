@@ -291,6 +291,7 @@ textarea {
 .page-grid {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 
 .page-columns {
@@ -302,6 +303,7 @@ textarea {
 .panel-card {
   padding: 22px;
   border-radius: 26px;
+  min-width: 0;
 }
 
 .stats-grid {
@@ -355,6 +357,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .order-card-body,
@@ -373,11 +376,13 @@ textarea {
 
 .order-actions {
   margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 .order-actions button {
   flex: 1;
   justify-content: center;
+  min-width: 160px;
 }
 
 .product-card {
@@ -541,5 +546,13 @@ textarea {
   .page-columns,
   .report-grid {
     grid-template-columns: 1fr;
+  }
+
+  .inline-form,
+  .sound-button,
+  .order-actions button,
+  .ghost-button,
+  .primary-button {
+    width: 100%;
   }
 }
