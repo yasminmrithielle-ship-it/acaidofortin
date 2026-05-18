@@ -17,3 +17,5 @@ android-apk/build
 *.apk
 *.idsig
 *.keystore
+chatbot-fortin/node_modules
+chatbot-fortin/sessions

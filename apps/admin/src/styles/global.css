@@ -334,7 +334,9 @@ textarea {
 .bar-list,
 .form-grid,
 .report-grid,
-.pill-grid {
+.pill-grid,
+.chatbot-grid,
+.chatbot-details {
   display: grid;
   gap: 14px;
 }
@@ -468,6 +470,55 @@ textarea {
   font-size: 1.6rem;
 }
 
+.empty-state {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  min-height: 180px;
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  color: var(--muted);
+}
+
+.qr-card {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.qr-image {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 24px;
+  background: white;
+  padding: 14px;
+}
+
+.qr-empty svg {
+  color: var(--accent-neon);
+}
+
+.chatbot-grid {
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.chatbot-status-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panel-subsection {
+  display: grid;
+  gap: 12px;
+}
+
 .error-text {
   color: var(--danger);
 }
@@ -515,7 +566,9 @@ textarea {
 
   .stats-grid,
   .page-columns,
-  .report-grid {
+  .report-grid,
+  .chatbot-grid,
+  .chatbot-status-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -544,7 +597,9 @@ textarea {
 
   .stats-grid,
   .page-columns,
-  .report-grid {
+  .report-grid,
+  .chatbot-grid,
+  .chatbot-status-grid {
     grid-template-columns: 1fr;
   }
 

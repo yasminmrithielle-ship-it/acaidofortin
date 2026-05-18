@@ -13,11 +13,7 @@ const defaultSizes = [
   { id: "700", name: "700ml", price: 31.9 }
 ];
 
-const defaultAddOns = [
-  { id: "banana", name: "Banana", price: 2.5 },
-  { id: "granola", name: "Granola", price: 3.5 },
-  { id: "nutella", name: "Nutella", price: 6.5 }
-];
+const defaultAddOns: Array<{ id: string; name: string; price: number }> = [];
 
 export function ProductsPage({ token }: Props) {
   const [products, setProducts] = useState<Array<Record<string, any>>>([]);
@@ -101,7 +97,7 @@ export function ProductsPage({ token }: Props) {
         <article className="panel-card">
           <div className="section-head">
             <h2>Novo produto</h2>
-            <span>Tamanhos e adicionais padrao Fortin</span>
+            <span>Tamanhos padrao da operacao</span>
           </div>
 
           <form className="form-grid" onSubmit={handleCreateProduct}>

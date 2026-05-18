@@ -6,6 +6,18 @@ type Props = {
   token: string;
 };
 
+const targetLabelMap: Record<string, string> = {
+  HOME: "Pagina inicial",
+  PROMOTION: "Promocao",
+  LOYALTY: "Fidelidade"
+};
+
+const discountTypeLabelMap: Record<string, string> = {
+  PERCENT: "Percentual",
+  FIXED: "Valor fixo",
+  DELIVERY: "Entrega gratis"
+};
+
 export function PromotionsPage({ token }: Props) {
   const [banners, setBanners] = useState<Array<Record<string, any>>>([]);
   const [coupons, setCoupons] = useState<Array<Record<string, any>>>([]);
@@ -97,7 +109,7 @@ export function PromotionsPage({ token }: Props) {
             {banners.map((banner) => (
               <div className="list-row" key={banner.id}>
                 <strong>{banner.title}</strong>
-                <span>{banner.target}</span>
+                <span>{targetLabelMap[banner.target] ?? banner.target}</span>
               </div>
             ))}
           </div>
@@ -112,7 +124,7 @@ export function PromotionsPage({ token }: Props) {
             {coupons.map((coupon) => (
               <div className="list-row" key={coupon.id}>
                 <strong>{coupon.code}</strong>
-                <span>{coupon.discountType}</span>
+                <span>{discountTypeLabelMap[coupon.discountType] ?? coupon.discountType}</span>
               </div>
             ))}
           </div>
@@ -121,4 +133,3 @@ export function PromotionsPage({ token }: Props) {
     </section>
   );
 }
-

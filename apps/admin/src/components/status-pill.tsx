@@ -1,3 +1,5 @@
+import { formatStatusLabel } from "../lib/format";
+
 type Props = {
   label: string;
 };
@@ -13,5 +15,5 @@ const statusMap: Record<string, string> = {
 };
 
 export function StatusPill({ label }: Props) {
-  return <span className={statusMap[label] ?? "status"}>{label.split("_").join(" ")}</span>;
+  return <span className={statusMap[label] ?? "status"}>{formatStatusLabel(label)}</span>;
 }

@@ -12,6 +12,7 @@ import { ordersRoutes } from "../modules/orders/routes/orders.routes";
 import { productsRoutes } from "../modules/products/routes/products.routes";
 import { reviewsRoutes } from "../modules/reviews/routes/reviews.routes";
 import { uploadsRoutes } from "../modules/uploads/routes/uploads.routes";
+import { whatsappRoutes } from "../modules/whatsapp/routes/whatsapp.routes";
 
 export const apiRoutes = Router();
 
@@ -35,4 +36,4 @@ apiRoutes.use("/notifications", notificationsRoutes);
 apiRoutes.use("/loyalty", loyaltyRoutes);
 apiRoutes.use("/reviews", reviewsRoutes);
 apiRoutes.use("/uploads", uploadsRoutes);
-
+apiRoutes.use("/whatsapp", whatsappRoutes);

@@ -39,6 +39,8 @@ type CreateOrderInput = {
   }>;
 };
 
+const DEMO_CUSTOMER_EMAIL = "cliente@fortin.com";
+
 function asOptionArray(value: Prisma.JsonValue): ProductOption[] {
   if (!Array.isArray(value)) {
     return [];
@@ -348,7 +350,14 @@ export const ordersService = {
 
   async listAll(status?: OrderStatus) {
     const orders = await prisma.order.findMany({
-      where: status ? { status } : undefined,
+      where: {
+        ...(status ? { status } : {}),
+        user: {
+          email: {
+            not: DEMO_CUSTOMER_EMAIL
+          }
+        }
+      },
       include: {
         user: {
           select: {

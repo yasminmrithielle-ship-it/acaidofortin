@@ -22,7 +22,7 @@ export default function App() {
     event.preventDefault();
 
     if (form.username.trim().toUpperCase() !== ADMIN_USERNAME || form.password !== ADMIN_PASSWORD) {
-      setError("Usuario ou senha invalidos");
+      setError("Usuario ou senha invalidos.");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function App() {
       setToken(response.token);
       setError("");
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Falha no login");
+      setError(loginError instanceof Error ? loginError.message : "Falha ao entrar no painel.");
     }
   }
 

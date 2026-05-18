@@ -4,6 +4,7 @@ import { cache } from "../../../lib/cache";
 import { prisma } from "../../../lib/prisma";
 
 const DASHBOARD_KEY = "dashboard:summary";
+const DEMO_CUSTOMER_EMAIL = "cliente@fortin.com";
 
 export const dashboardService = {
   async getSummary() {
@@ -14,10 +15,32 @@ export const dashboardService = {
     }
 
     const [ordersCount, customersCount, productsCount, orders, lowStockProducts, reportOrders] = await Promise.all([
-      prisma.order.count(),
-      prisma.user.count({ where: { role: UserRole.CUSTOMER } }),
+      prisma.order.count({
+        where: {
+          user: {
+            email: {
+              not: DEMO_CUSTOMER_EMAIL
+            }
+          }
+        }
+      }),
+      prisma.user.count({
+        where: {
+          role: UserRole.CUSTOMER,
+          email: {
+            not: DEMO_CUSTOMER_EMAIL
+          }
+        }
+      }),
       prisma.product.count(),
       prisma.order.findMany({
+        where: {
+          user: {
+            email: {
+              not: DEMO_CUSTOMER_EMAIL
+            }
+          }
+        },
         include: {
           items: true
         },
@@ -35,6 +58,11 @@ export const dashboardService = {
       }),
       prisma.order.findMany({
         where: {
+          user: {
+            email: {
+              not: DEMO_CUSTOMER_EMAIL
+            }
+          },
           status: {
             not: OrderStatus.CANCELED
           }
@@ -115,9 +143,14 @@ export const dashboardService = {
         productCost,
         ordersCount,
         customersCount,
-        productsCount,
+        productsCount: ordersCount > 0 ? productsCount : 0,
         pendingOrders: await prisma.order.count({
           where: {
+            user: {
+              email: {
+                not: DEMO_CUSTOMER_EMAIL
+              }
+            },
             status: {
               in: [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PREPARING]
             }
@@ -125,7 +158,7 @@ export const dashboardService = {
         })
       },
       recentOrders: orders,
-      lowStockProducts,
+      lowStockProducts: ordersCount > 0 ? lowStockProducts : [],
       topProducts: Array.from(topProductsMap.values()).sort((a, b) => b.quantity - a.quantity),
       paymentBreakdown,
       revenueByDate

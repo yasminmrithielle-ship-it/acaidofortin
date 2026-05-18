@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChartColumnBig, LayoutDashboard, LogOut, Menu, Package, Percent, ShoppingBasket, X } from "lucide-react";
+import { Bot, ChartColumnBig, LayoutDashboard, LogOut, Menu, Package, Percent, ShoppingBasket, X } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import fortinLogo from "../../../mobile/assets/brand/fortin-logo.jpeg";
 
@@ -8,11 +8,12 @@ type Props = {
 };
 
 const navigation = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Painel", icon: LayoutDashboard },
   { to: "/orders", label: "Pedidos", icon: ShoppingBasket },
   { to: "/products", label: "Produtos", icon: Package },
   { to: "/promotions", label: "Promocoes", icon: Percent },
-  { to: "/reports", label: "Relatorios", icon: ChartColumnBig }
+  { to: "/reports", label: "Relatorios", icon: ChartColumnBig },
+  { to: "/chatbot", label: "WhatsApp", icon: Bot }
 ];
 
 export function AppShell({ onLogout }: Props) {
@@ -25,7 +26,7 @@ export function AppShell({ onLogout }: Props) {
           <img alt="Acai do Fortin" className="brand-mark" src={fortinLogo} />
           <div>
             <strong>Acai do Fortin</strong>
-            <small>Painel premium</small>
+            <small>Painel administrativo</small>
           </div>
           <button aria-label="Fechar menu" className="sidebar-close" onClick={() => setSidebarOpen(false)} type="button">
             <X size={18} />
@@ -71,10 +72,10 @@ export function AppShell({ onLogout }: Props) {
             </button>
             <div>
               <p className="eyebrow">Operacao em tempo real</p>
-              <h1>Gestao de delivery, fidelidade e promocoes</h1>
+              <h1>Gestao de pedidos, fidelidade e promocoes</h1>
             </div>
           </div>
-          <div className="topbar-chip">Acai artesanal premium</div>
+          <div className="topbar-chip">Operacao da loja</div>
         </header>
         <Outlet />
       </main>

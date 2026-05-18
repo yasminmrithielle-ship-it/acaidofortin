@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-fortin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fortin123}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5434}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,12 +28,42 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-fortin}:${POSTGRES_PASSWORD:-fortin123}@postgres:5432/${POSTGRES_DB:-acai_do_fortin}?schema=public
       PORT: 3333
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-*}
+      WHATSAPP_BOT_URL: ${WHATSAPP_BOT_URL:-http://chatbot:3001}
+      WHATSAPP_BOT_SECRET: ${WHATSAPP_BOT_SECRET:-fortin-whatsapp-secret}
     ports:
       - "3333:3333"
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma db push && npm run prisma:seed && npm run dev"
+      chatbot:
+        condition: service_started
+
+  chatbot:
+    build:
+      context: ./chatbot-fortin
+      dockerfile: Dockerfile
+    container_name: fortin-chatbot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3001
+      WHATSAPP_BOT_SECRET: ${WHATSAPP_BOT_SECRET:-fortin-whatsapp-secret}
+    ports:
+      - "3001:3001"
+    volumes:
+      - chatbot_sessions:/app/sessions
+
+  tunnel:
+    image: cloudflare/cloudflared:2025.8.1
+    container_name: fortin-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://api:3333
+    depends_on:
+      api:
+        condition: service_started
 
 volumes:
   postgres_data:
+  chatbot_sessions:

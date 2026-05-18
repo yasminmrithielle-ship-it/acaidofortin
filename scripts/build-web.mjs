@@ -16,10 +16,39 @@ const tscBin = require.resolve("typescript/bin/tsc");
 const vitePackageJsonPath = require.resolve("vite/package.json");
 const viteBin = resolve(dirname(vitePackageJsonPath), "bin/vite.js");
 
+if (typeof process.loadEnvFile === "function") {
+  const preservedEnv = {
+    VITE_API_URL: process.env.VITE_API_URL,
+    EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL
+  };
+
+  for (const envFileName of [".env", ".env.local"]) {
+    const envFilePath = resolve(root, envFileName);
+    if (existsSync(envFilePath)) {
+      process.loadEnvFile(envFilePath);
+    }
+  }
+
+  if (preservedEnv.VITE_API_URL) {
+    process.env.VITE_API_URL = preservedEnv.VITE_API_URL;
+  }
+
+  if (preservedEnv.EXPO_PUBLIC_API_URL) {
+    process.env.EXPO_PUBLIC_API_URL = preservedEnv.EXPO_PUBLIC_API_URL;
+  }
+}
+
+const sharedBuildEnv = {
+  ...process.env,
+  VITE_API_URL: process.env.VITE_API_URL ?? process.env.EXPO_PUBLIC_API_URL,
+  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL ?? process.env.VITE_API_URL
+};
+
 function runNodeScript(scriptPath, args, cwd) {
   execFileSync(process.execPath, [scriptPath, ...args], {
     cwd,
-    stdio: "inherit"
+    stdio: "inherit",
+    env: sharedBuildEnv
   });
 }
 
@@ -29,6 +58,10 @@ function copyDirectoryContents(sourceDir, targetDir) {
   for (const entry of readdirSync(sourceDir, { withFileTypes: true })) {
     const sourcePath = resolve(sourceDir, entry.name);
     const targetPath = resolve(targetDir, entry.name);
+
+    if (!existsSync(sourcePath)) {
+      continue;
+    }
 
     if (entry.isDirectory()) {
       copyDirectoryContents(sourcePath, targetPath);

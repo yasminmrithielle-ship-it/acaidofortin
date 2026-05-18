@@ -49,6 +49,7 @@ type CartItem = {
 };
 
 type DeliveryForm = {
+  customerName: string;
   zipCode: string;
   street: string;
   number: string;
@@ -71,9 +72,36 @@ type TrackedOrder = {
   items: Array<{ quantity: number; productName: string }>;
 };
 
-const API_URL = import.meta.env.VITE_API_URL ?? import.meta.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3333/api";
+function isLocalHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0";
+}
+
+function normalizeApiUrl(url: string) {
+  return url.replace(/\/$/, "");
+}
+
+function resolveApiUrl() {
+  const configuredUrl = import.meta.env.VITE_API_URL?.trim() ?? import.meta.env.EXPO_PUBLIC_API_URL?.trim();
+  if (configuredUrl) {
+    return normalizeApiUrl(configuredUrl);
+  }
+
+  if (typeof window !== "undefined") {
+    if (isLocalHost(window.location.hostname)) {
+      return "http://localhost:3333/api";
+    }
+
+    return `${window.location.origin}/api`;
+  }
+
+  return "http://localhost:3333/api";
+}
+
+const API_URL = resolveApiUrl();
 const CART_KEY = "fortin_web_cart";
-const ORDERS_KEY = "fortin_web_orders";
+const ORDERS_KEY = "fortin_live_orders";
+const CUSTOMER_TOKEN_KEY = "fortin_customer_token";
+const CUSTOMER_IDENTITY_KEY = "fortin_customer_identity";
 
 const sizeOptions: ProductOption[] = [
   { id: "300", name: "300ml", price: 18.9 },
@@ -81,12 +109,7 @@ const sizeOptions: ProductOption[] = [
   { id: "700", name: "700ml", price: 31.9 }
 ];
 
-const addOnOptions: ProductOption[] = [
-  { id: "banana", name: "Banana", price: 2.5 },
-  { id: "morango", name: "Morango", price: 4.5 },
-  { id: "granola", name: "Granola artesanal", price: 3.5 },
-  { id: "nutella", name: "Nutella", price: 6.5 }
-];
+const addOnOptions: ProductOption[] = [];
 
 const fallbackProducts: Product[] = [
   {
@@ -98,7 +121,7 @@ const fallbackProducts: Product[] = [
     basePrice: 31.9,
     stockQuantity: 40,
     sizes: sizeOptions,
-    addOns: addOnOptions,
+    addOns: [],
     isFeatured: true,
     category: { id: "tradicionais", name: "Tradicionais" }
   },
@@ -111,7 +134,7 @@ const fallbackProducts: Product[] = [
     basePrice: 34.9,
     stockQuantity: 22,
     sizes: sizeOptions,
-    addOns: addOnOptions,
+    addOns: [],
     isFeatured: true,
     category: { id: "zero-acucar", name: "Zero acucar" }
   },
@@ -124,7 +147,7 @@ const fallbackProducts: Product[] = [
     basePrice: 29.9,
     stockQuantity: 31,
     sizes: sizeOptions,
-    addOns: addOnOptions,
+    addOns: [],
     category: { id: "especiais", name: "Especiais" }
   }
 ];
@@ -133,20 +156,21 @@ const fallbackBanners: Banner[] = [
   {
     id: "banner-1",
     title: "Semana Fortin",
-    subtitle: "Compre 2 bowls e ganhe topping premium.",
+    subtitle: "Sabores premium para iniciar os pedidos da loja.",
     imageUrl: fortinProduct,
     ctaLabel: "Pedir agora"
   },
   {
     id: "banner-2",
     title: "Monte do seu jeito",
-    subtitle: "Tamanhos, adicionais e entrega gratis ate 6 km.",
+    subtitle: "Tamanhos, entrega gratis ate 6 km e pedido rapido.",
     imageUrl: fortinProduct,
     ctaLabel: "Explorar"
   }
 ];
 
 const defaultDeliveryForm: DeliveryForm = {
+  customerName: "",
   zipCode: "",
   street: "",
   number: "",
@@ -174,6 +198,175 @@ function getOrderCode(order: TrackedOrder) {
   return order.publicCode ?? order.id;
 }
 
+async function apiRequest<T>(path: string, options: RequestInit & { token?: string } = {}) {
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  if (options.token) {
+    headers.set("Authorization", `Bearer ${options.token}`);
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers
+  });
+
+  if (!response.ok) {
+    throw new Error("Falha de API");
+  }
+
+  return response.json() as Promise<T>;
+}
+
+function buildGuestCredentials(phone: string) {
+  const digits = onlyDigits(phone).padStart(10, "0").slice(-10);
+
+  return {
+    email: `pedido.${digits}@fortin.local`,
+    password: `Fortin#${digits}`
+  };
+}
+
+function normalizeTrackedOrder(order: any): TrackedOrder {
+  return {
+    id: String(order.id),
+    publicCode: order.publicCode ? String(order.publicCode) : undefined,
+    status: String(order.status ?? "PENDING"),
+    total: Number(order.total ?? 0),
+    paymentMethod: String(order.paymentMethod ?? "PIX"),
+    paymentStatus: String(order.paymentStatus ?? "PENDING"),
+    createdAt: String(order.createdAt ?? new Date().toISOString()),
+    items: Array.isArray(order.items)
+      ? order.items.map((item: any) => ({
+          quantity: Number(item.quantity ?? 0),
+          productName: String(item.productName ?? "Item")
+        }))
+      : []
+  };
+}
+
+function persistOrder(order: any) {
+  const orders = getStoredJson<any[]>(ORDERS_KEY, []);
+  orders.unshift(order);
+  window.localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+}
+
+async function ensureCustomerToken(deliveryForm: DeliveryForm) {
+  const credentials = buildGuestCredentials(deliveryForm.phone);
+  const storedToken = window.localStorage.getItem(CUSTOMER_TOKEN_KEY);
+  const storedIdentity = window.localStorage.getItem(CUSTOMER_IDENTITY_KEY);
+
+  if (storedToken && storedIdentity === credentials.email) {
+    return storedToken;
+  }
+
+  try {
+    const loginResponse = await apiRequest<{ token: string }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials)
+    });
+
+    window.localStorage.setItem(CUSTOMER_TOKEN_KEY, loginResponse.token);
+    window.localStorage.setItem(CUSTOMER_IDENTITY_KEY, credentials.email);
+    return loginResponse.token;
+  } catch {
+    const registerResponse = await apiRequest<{ token: string }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        name: deliveryForm.customerName.trim(),
+        email: credentials.email,
+        phone: deliveryForm.phone,
+        password: credentials.password
+      })
+    });
+
+    window.localStorage.setItem(CUSTOMER_TOKEN_KEY, registerResponse.token);
+    window.localStorage.setItem(CUSTOMER_IDENTITY_KEY, credentials.email);
+    return registerResponse.token;
+  }
+}
+
+async function createApiOrder(
+  cart: CartItem[],
+  deliveryForm: DeliveryForm,
+  couponCode: string,
+  paymentMethod: PaymentMethod,
+  changeFor?: number
+) {
+  const token = await ensureCustomerToken(deliveryForm);
+
+  return apiRequest<any>("/orders", {
+    method: "POST",
+    token,
+    body: JSON.stringify({
+      deliveryAddress: {
+        zipCode: deliveryForm.zipCode,
+        street: deliveryForm.street,
+        number: deliveryForm.number,
+        referencePoint: deliveryForm.referencePoint,
+        phone: deliveryForm.phone,
+        neighborhood: deliveryForm.neighborhood,
+        city: deliveryForm.city,
+        state: deliveryForm.state
+      },
+      couponCode: couponCode.trim() || undefined,
+      paymentMethod,
+      changeFor,
+      items: cart.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        selectedSizeId: item.size.id,
+        selectedAddOnIds: [],
+        notes: item.notes
+      }))
+    })
+  });
+}
+
+function createLocalOrder(
+  cart: CartItem[],
+  deliveryForm: DeliveryForm,
+  total: number,
+  paymentMethod: PaymentMethod,
+  changeFor?: number
+) {
+  const publicCode = `FRT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  return {
+    id: `local-${Date.now()}`,
+    publicCode,
+    status: "PENDING",
+    total,
+    paymentMethod,
+    paymentStatus: paymentMethod === "CASH" ? "PENDING" : "PAID",
+    estimatedMinutes: 35,
+    createdAt: new Date().toISOString(),
+    user: {
+      name: deliveryForm.customerName.trim(),
+      phone: deliveryForm.phone
+    },
+    address: {
+      street: deliveryForm.street,
+      number: deliveryForm.number,
+      neighborhood: deliveryForm.neighborhood,
+      city: deliveryForm.city,
+      state: deliveryForm.state,
+      zipCode: deliveryForm.zipCode,
+      referencePoint: deliveryForm.referencePoint
+    },
+    items: cart.map((item, index) => ({
+      id: `${publicCode}-${index}`,
+      productName: item.name,
+      quantity: item.quantity,
+      unitPrice: item.size.price,
+      selectedSize: item.size,
+      selectedAddOns: [],
+      notes: item.notes
+    })),
+    payment: changeFor ? { changeFor } : undefined
+  };
+}
+
 function normalizeProduct(product: any): Product {
   return {
     id: product.id,
@@ -184,7 +377,7 @@ function normalizeProduct(product: any): Product {
     basePrice: Number(product.basePrice ?? 0),
     stockQuantity: Number(product.stockQuantity ?? 0),
     sizes: Array.isArray(product.sizes) && product.sizes.length ? product.sizes : sizeOptions,
-    addOns: Array.isArray(product.addOns) && product.addOns.length ? product.addOns : addOnOptions,
+    addOns: [],
     isFeatured: Boolean(product.isFeatured),
     category: product.category ? { id: product.category.id, name: product.category.name } : undefined
   };
@@ -226,10 +419,11 @@ export default function App() {
   const [category, setCategory] = useState("Todos");
   const [selectedProduct, setSelectedProduct] = useState<Product>(fallbackProducts[0]);
   const [selectedSize, setSelectedSize] = useState<ProductOption>(fallbackProducts[0].sizes[2]);
-  const [selectedAddOns, setSelectedAddOns] = useState<ProductOption[]>([fallbackProducts[0].addOns[2]]);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [cart, setCart] = useState<CartItem[]>(() => getStoredJson<CartItem[]>(CART_KEY, []));
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
+  const [needsChange, setNeedsChange] = useState(false);
+  const [changeFor, setChangeFor] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [deliveryForm, setDeliveryForm] = useState<DeliveryForm>(defaultDeliveryForm);
   const [cepStatus, setCepStatus] = useState("");
@@ -244,7 +438,6 @@ export default function App() {
       if (nextProducts.length > 0) {
         setSelectedProduct(nextProducts[0]);
         setSelectedSize(nextProducts[0].sizes[0] ?? sizeOptions[0]);
-        setSelectedAddOns([]);
       }
     });
   }, []);
@@ -272,27 +465,19 @@ export default function App() {
 
   const subtotal = useMemo(
     () =>
-      cart.reduce((sum, item) => {
-        const addOnTotal = item.addOns.reduce((total, addOn) => total + addOn.price, 0);
-        return sum + (item.size.price + addOnTotal) * item.quantity;
-      }, 0),
+      cart.reduce((sum, item) => sum + item.size.price * item.quantity, 0),
     [cart]
   );
 
   const discount = couponCode.trim().toUpperCase() === "FORTIN10" ? subtotal * 0.1 : 0;
   const total = cart.length ? subtotal - discount : 0;
+  const changeForValue = Number(changeFor || 0);
+  const changeAmount = needsChange && changeForValue >= total ? changeForValue - total : 0;
 
   function openBuilder(product: Product) {
     setSelectedProduct(product);
     setSelectedSize(product.sizes[0] ?? sizeOptions[0]);
-    setSelectedAddOns([]);
     setBuilderOpen(true);
-  }
-
-  function toggleAddon(addOn: ProductOption) {
-    setSelectedAddOns((current) =>
-      current.some((item) => item.id === addOn.id) ? current.filter((item) => item.id !== addOn.id) : [...current, addOn]
-    );
   }
 
   function addToCart() {
@@ -303,7 +488,7 @@ export default function App() {
         name: selectedProduct.name,
         imageUrl: selectedProduct.imageUrl || fortinProduct,
         size: selectedSize,
-        addOns: selectedAddOns,
+        addOns: [],
         quantity: 1
       },
       ...current
@@ -358,14 +543,19 @@ export default function App() {
   }
 
   function validateDelivery() {
+    if (!deliveryForm.customerName.trim()) return "Informe o nome do cliente.";
     if (!deliveryForm.street.trim()) return "Informe a rua.";
     if (!deliveryForm.number.trim()) return "Informe o numero.";
     if (!deliveryForm.neighborhood.trim()) return "Informe o bairro.";
     if (!onlyDigits(deliveryForm.phone)) return "Informe o telefone com WhatsApp.";
+    if (paymentMethod === "CASH" && needsChange) {
+      if (!changeFor.trim()) return "Informe o valor para troco.";
+      if (changeForValue < total) return "O valor para troco precisa ser maior ou igual ao total.";
+    }
     return "";
   }
 
-  function checkout() {
+  async function checkout() {
     if (cart.length === 0) {
       setNotice("Adicione um item antes de finalizar.");
       return;
@@ -377,27 +567,27 @@ export default function App() {
       return;
     }
 
-    const createdOrder: TrackedOrder = {
-      id: `FRT-${Math.floor(100000 + Math.random() * 900000)}`,
-      status: "PENDING",
-      total,
-      paymentMethod,
-      paymentStatus: paymentMethod === "CASH" ? "PENDING" : "PAID",
-      createdAt: new Date().toISOString(),
-      items: cart.map((item) => ({ quantity: item.quantity, productName: item.name }))
-    };
+    let createdOrder: any;
+    const nextChangeFor = paymentMethod === "CASH" && needsChange ? changeForValue : undefined;
 
-    const orders = getStoredJson<TrackedOrder[]>(ORDERS_KEY, []);
-    orders.unshift(createdOrder);
-    window.localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    try {
+      createdOrder = await createApiOrder(cart, deliveryForm, couponCode, paymentMethod, nextChangeFor);
+    } catch {
+      createdOrder = createLocalOrder(cart, deliveryForm, total, paymentMethod, nextChangeFor);
+    }
 
-    setTrackedOrder(createdOrder);
-    setTrackCode(getOrderCode(createdOrder));
+    persistOrder(createdOrder);
+    const tracked = normalizeTrackedOrder(createdOrder);
+
+    setTrackedOrder(tracked);
+    setTrackCode(getOrderCode(tracked));
     setCart([]);
+    setNeedsChange(false);
+    setChangeFor("");
     setCouponCode("");
     setDeliveryForm(defaultDeliveryForm);
     setScreen("orders");
-    setNotice(`Pedido ${getOrderCode(createdOrder)} enviado.`);
+    setNotice(`Pedido ${getOrderCode(tracked)} enviado.`);
   }
 
   async function trackOrder() {
@@ -444,7 +634,7 @@ export default function App() {
           <img alt="Acai do Fortin" className="summary-logo" src={fortinLogo} />
           <span className="summary-eyebrow">React + Vite</span>
           <h1>Acai do Fortin</h1>
-          <p>Catalogo digital, montagem de acai, carrinho e acompanhamento de pedido em uma interface web unica e responsiva.</p>
+          <p>Catalogo digital, montagem por tamanho, carrinho e acompanhamento de pedido em uma interface web unica e responsiva.</p>
           <div className="summary-metrics">
             <article className="summary-metric">
               <strong>28 min</strong>
@@ -499,7 +689,7 @@ export default function App() {
                 <div className="hero-copy">
                   <span className="hero-eyebrow">Semana Fortin</span>
                   <h2>Monte seu acai premium do seu jeito.</h2>
-                  <p>Tamanhos, adicionais, cupom e acompanhamento por numero de pedido.</p>
+                  <p>Tamanhos, cupom e acompanhamento por numero de pedido.</p>
                   <button className="primary-button-web" onClick={() => setScreen("catalog")} type="button">
                     Pedir agora
                   </button>
@@ -564,7 +754,7 @@ export default function App() {
                 <input
                   className="text-input-web"
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Buscar sabor ou adicional"
+                  placeholder="Buscar sabor"
                   value={search}
                 />
                 <div className="chip-row">
@@ -620,9 +810,9 @@ export default function App() {
                             <div className="cart-copy">
                               <strong>{item.name}</strong>
                               <p>
-                                {item.size.name} · {item.addOns.map((addOn) => addOn.name).join(", ") || "Sem adicionais"}
+                                {item.size.name}
                               </p>
-                              <span>{money((item.size.price + item.addOns.reduce((sum, addOn) => sum + addOn.price, 0)) * item.quantity)}</span>
+                              <span>{money(item.size.price * item.quantity)}</span>
                             </div>
                             <button className="link-button-web" onClick={() => removeCartItem(item.id)} type="button">
                               Remover
@@ -656,6 +846,7 @@ export default function App() {
                         value={deliveryForm.zipCode}
                       />
                       {cepStatus ? <span className="helper-text">{cepStatus}</span> : null}
+                      <input className="text-input-web" onChange={(event) => updateDeliveryField("customerName", event.target.value)} placeholder="Nome do cliente" value={deliveryForm.customerName} />
                       <input className="text-input-web" onChange={(event) => updateDeliveryField("street", event.target.value)} placeholder="Rua" value={deliveryForm.street} />
                       <div className="two-columns-web">
                         <input className="text-input-web" onChange={(event) => updateDeliveryField("number", event.target.value)} placeholder="Numero" value={deliveryForm.number} />
@@ -678,13 +869,51 @@ export default function App() {
                           <button
                             key={item.key}
                             className={paymentMethod === item.key ? "chip-web active" : "chip-web"}
-                            onClick={() => setPaymentMethod(item.key as PaymentMethod)}
+                            onClick={() => {
+                              setPaymentMethod(item.key as PaymentMethod);
+                              if (item.key !== "CASH") {
+                                setNeedsChange(false);
+                                setChangeFor("");
+                              }
+                            }}
                             type="button"
                           >
                             {item.label}
                           </button>
                         ))}
                       </div>
+                      {paymentMethod === "CASH" ? (
+                        <div className="payment-option-card">
+                          <label className="checkbox-row">
+                            <input
+                              checked={needsChange}
+                              onChange={(event) => {
+                                setNeedsChange(event.target.checked);
+                                if (!event.target.checked) {
+                                  setChangeFor("");
+                                }
+                              }}
+                              type="checkbox"
+                            />
+                            <span>Precisa de troco</span>
+                          </label>
+                          {needsChange ? (
+                            <>
+                              <input
+                                className="text-input-web"
+                                onChange={(event) => setChangeFor(event.target.value)}
+                                placeholder="Troco para quanto?"
+                                value={changeFor}
+                              />
+                              <span className="helper-text">
+                                {changeForValue >= total
+                                  ? `Troco previsto: ${money(changeAmount)}`
+                                  : "Informe um valor maior ou igual ao total do pedido."}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                      ) : null}
                       <div className="summary-card">
                         <div className="summary-row"><span>Subtotal</span><strong>{money(subtotal)}</strong></div>
                         <div className="summary-row"><span>Desconto</span><strong>{money(discount)}</strong></div>
@@ -781,22 +1010,6 @@ export default function App() {
                     type="button"
                   >
                     {size.name} · {money(size.price)}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="builder-section">
-              <h3>Adicionais</h3>
-              <div className="chip-row">
-                {selectedProduct.addOns.map((addOn) => (
-                  <button
-                    key={addOn.id}
-                    className={selectedAddOns.some((item) => item.id === addOn.id) ? "chip-web active" : "chip-web"}
-                    onClick={() => toggleAddon(addOn)}
-                    type="button"
-                  >
-                    {addOn.name} · {money(addOn.price)}
                   </button>
                 ))}
               </div>

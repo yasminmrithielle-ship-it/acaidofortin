@@ -91,9 +91,9 @@ Copie os exemplos:
 - `cp apps/mobile/.env.example apps/mobile/.env`
 - `cp apps/admin/.env.example apps/admin/.env`
 
-No Windows PowerShell, faça o equivalente com `Copy-Item`.
+No Windows PowerShell, faca o equivalente com `Copy-Item`.
 
-### 2. Subir backend e banco
+### 2. Subir toda a stack em Docker
 
 ```bash
 docker compose up --build
@@ -104,6 +104,29 @@ Serviços esperados:
 - API: `http://localhost:3333/api`
 - Swagger: `http://localhost:3333/docs`
 - PostgreSQL: `localhost:5432`
+- Chatbot/WhatsApp: `http://localhost:3001/health`
+
+Essa stack sobe:
+
+- `postgres`: banco principal do sistema em volume persistente
+- `api`: backend Express + Prisma apontando para o Postgres do Docker
+- `chatbot`: servico do WhatsApp com sessao persistida em volume
+- `tunnel`: URL publica HTTPS temporaria para expor a API do Docker
+
+O chatbot expoe a rota `/session`, usada pelo painel admin para mostrar o QR Code e o estado da conexao.
+
+Para descobrir a URL publica do backend:
+
+```bash
+docker logs fortin-tunnel
+```
+
+Depois de obter a URL, configure:
+
+- `EXPO_PUBLIC_API_URL=https://.../api`
+- `VITE_API_URL=https://.../api`
+
+e rode novamente o build/deploy do frontend para o app e o painel publicados usarem a API online.
 
 ### 3. Rodar frontend mobile
 
@@ -127,6 +150,7 @@ npm run api
 npm run mobile
 npm run admin
 npm run build
+npm run build:web
 npm run docker:up
 npm run prisma:generate
 npm run prisma:migrate
@@ -168,6 +192,7 @@ As bases de integração já estão previstas no código, mas exigem credenciais
 - push notifications
 - gateway de cartão
 - PIX provider
+- sessao real do WhatsApp Web no container `chatbot`
 
 ## Observações
 

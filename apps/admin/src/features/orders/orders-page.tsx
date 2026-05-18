@@ -3,7 +3,7 @@ import { Printer, Volume2 } from "lucide-react";
 
 import { StatusPill } from "../../components/status-pill";
 import { fallbackOrders, getOrders, updateOrderStatus, type OrderRecord } from "../../lib/api";
-import { formatCurrency, formatDate } from "../../lib/format";
+import { formatCurrency, formatDate, formatPaymentMethod, formatStatusLabel } from "../../lib/format";
 
 type Props = {
   token: string;
@@ -114,7 +114,7 @@ function printOrder(order: OrderRecord) {
         <p><strong>Cliente:</strong> ${escapeHtml(order.user?.name ?? "Cliente")}</p>
         <p><strong>Telefone:</strong> ${escapeHtml(order.user?.phone ?? "-")}</p>
         <p><strong>Endereco:</strong> ${escapeHtml(formatAddress(order))}</p>
-        <p><strong>Pagamento:</strong> ${escapeHtml(order.paymentMethod)} - ${escapeHtml(order.paymentStatus)}</p>
+        <p><strong>Pagamento:</strong> ${escapeHtml(formatPaymentMethod(order.paymentMethod))} - ${escapeHtml(formatStatusLabel(order.paymentStatus))}</p>
         <p><strong>Data:</strong> ${escapeHtml(formatDate(order.createdAt))}</p>
         <table>${items}</table>
         <p class="total">Total: ${escapeHtml(formatCurrency(Number(order.total)))}</p>
@@ -132,13 +132,40 @@ function printOrder(order: OrderRecord) {
 export function OrdersPage({ token }: Props) {
   const [orders, setOrders] = useState<OrderRecord[]>(fallbackOrders);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [alertingOrderIds, setAlertingOrderIds] = useState<string[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const knownOrderIdsRef = useRef<Set<string> | null>(null);
   const audioEnabledRef = useRef(false);
+  const alarmIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     audioEnabledRef.current = audioEnabled;
   }, [audioEnabled]);
+
+  useEffect(() => {
+    if (!audioEnabled || alertingOrderIds.length === 0) {
+      if (alarmIntervalRef.current) {
+        window.clearInterval(alarmIntervalRef.current);
+        alarmIntervalRef.current = null;
+      }
+      return;
+    }
+
+    playOrderSound(audioContextRef);
+
+    if (!alarmIntervalRef.current) {
+      alarmIntervalRef.current = window.setInterval(() => {
+        playOrderSound(audioContextRef);
+      }, 2500);
+    }
+
+    return () => {
+      if (alarmIntervalRef.current) {
+        window.clearInterval(alarmIntervalRef.current);
+        alarmIntervalRef.current = null;
+      }
+    };
+  }, [alertingOrderIds, audioEnabled]);
 
   useEffect(() => {
     let mounted = true;
@@ -150,14 +177,26 @@ export function OrdersPage({ token }: Props) {
 
         const nextIds = new Set(nextOrders.map((order) => order.id));
         const knownIds = knownOrderIdsRef.current;
-        const hasNewOrder = Boolean(knownIds && nextOrders.some((order) => !knownIds.has(order.id)));
+        const newPendingOrderIds = knownIds
+          ? nextOrders
+              .filter((order) => !knownIds.has(order.id) && order.status === "PENDING")
+              .map((order) => order.id)
+          : [];
 
         setOrders(nextOrders);
         knownOrderIdsRef.current = nextIds;
 
-        if (notifyNewOrders && hasNewOrder && audioEnabledRef.current) {
-          playOrderSound(audioContextRef);
-        }
+        setAlertingOrderIds((current) => {
+          const validCurrentIds = current.filter((orderId) =>
+            nextOrders.some((order) => order.id === orderId && order.status === "PENDING")
+          );
+
+          if (!notifyNewOrders || !audioEnabledRef.current || newPendingOrderIds.length === 0) {
+            return validCurrentIds;
+          }
+
+          return Array.from(new Set([...validCurrentIds, ...newPendingOrderIds]));
+        });
       } catch {
         if (!knownOrderIdsRef.current) {
           setOrders(fallbackOrders);
@@ -182,6 +221,7 @@ export function OrdersPage({ token }: Props) {
 
   async function handleAdvance(orderId: string, status: string) {
     const nextStatus = getNextStatus(status);
+    setAlertingOrderIds((current) => current.filter((currentOrderId) => currentOrderId !== orderId));
 
     try {
       await updateOrderStatus(token, orderId, nextStatus);
@@ -211,35 +251,42 @@ export function OrdersPage({ token }: Props) {
       </div>
 
       <div className="table-grid">
-        {orders.map((order) => (
-          <article className="order-card" key={order.id}>
-            <div className="order-card-head">
-              <div>
-                <strong>#{getOrderCode(order)}</strong>
-                <p>{order.user?.name ?? "Cliente"}</p>
+        {orders.length ? (
+          orders.map((order) => (
+            <article className="order-card" key={order.id}>
+              <div className="order-card-head">
+                <div>
+                  <strong>#{getOrderCode(order)}</strong>
+                  <p>{order.user?.name ?? "Cliente"}</p>
+                </div>
+                <StatusPill label={order.status} />
               </div>
-              <StatusPill label={order.status} />
-            </div>
-            <div className="order-card-body">
-              <p>{order.items.map((item) => `${item.quantity}x ${item.productName}`).join(", ")}</p>
-              <p>{formatAddress(order)}</p>
-              <p>{formatDate(order.createdAt)}</p>
-              <p>{formatCurrency(Number(order.total))}</p>
-              <p>
-                {order.paymentMethod} - {order.paymentStatus}
-              </p>
-            </div>
-            <div className="order-actions">
-              <button className="primary-button" onClick={() => handleAdvance(order.id, order.status)} type="button">
-                Avancar status
-              </button>
-              <button className="ghost-button icon-action" onClick={() => printOrder(order)} title="Imprimir pedido" type="button">
-                <Printer size={16} />
-                <span>Imprimir</span>
-              </button>
-            </div>
-          </article>
-        ))}
+              <div className="order-card-body">
+                <p>{order.items.map((item) => `${item.quantity}x ${item.productName}`).join(", ")}</p>
+                <p>{formatAddress(order)}</p>
+                <p>{formatDate(order.createdAt)}</p>
+                <p>{formatCurrency(Number(order.total))}</p>
+                <p>
+                  {formatPaymentMethod(order.paymentMethod)} - {formatStatusLabel(order.paymentStatus)}
+                </p>
+              </div>
+              <div className="order-actions">
+                <button className="primary-button" onClick={() => handleAdvance(order.id, order.status)} type="button">
+                  {order.status === "PENDING" ? "Aceitar pedido" : "Avancar status"}
+                </button>
+                <button className="ghost-button icon-action" onClick={() => printOrder(order)} title="Imprimir pedido" type="button">
+                  <Printer size={16} />
+                  <span>Imprimir</span>
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="empty-state">
+            <strong>Nenhum pedido recebido</strong>
+            <p>Os pedidos feitos no app aparecerao aqui assim que forem finalizados.</p>
+          </div>
+        )}
       </div>
     </section>
   );

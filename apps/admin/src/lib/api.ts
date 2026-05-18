@@ -1,5 +1,38 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
+function isLocalHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0";
+}
+
+function normalizeApiUrl(url: string) {
+  return url.replace(/\/$/, "");
+}
+
+function resolveApiUrl() {
+  const configuredUrl = import.meta.env.VITE_API_URL?.trim();
+  if (configuredUrl) {
+    return normalizeApiUrl(configuredUrl);
+  }
+
+  if (typeof window !== "undefined") {
+    if (isLocalHost(window.location.hostname)) {
+      return "http://localhost:3333/api";
+    }
+
+    return `${window.location.origin}/api`;
+  }
+
+  return "http://localhost:3333/api";
+}
+
+function isRemotePanelPointingToLocalApi() {
+  if (typeof window === "undefined") return false;
+  if (isLocalHost(window.location.hostname)) return false;
+  return /^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?\/api$/i.test(API_URL);
+}
+
+const API_URL = resolveApiUrl();
 const TOKEN_KEY = "fortin_admin_token";
+const LOCAL_ORDERS_KEY = "fortin_live_orders";
+
 export const ADMIN_USERNAME = "ADMIN";
 export const ADMIN_PASSWORD = "202051";
 
@@ -60,6 +93,20 @@ export type OrderRecord = {
   }>;
 };
 
+export type WhatsAppConnection = {
+  configured: boolean;
+  connected: boolean;
+  status: string;
+  apiUrl?: string;
+  botUrl?: string;
+  phone?: string | null;
+  accountName?: string | null;
+  qrCodeDataUrl?: string | null;
+  lastUpdatedAt?: string | null;
+  lastError?: string | null;
+  instructions: string[];
+};
+
 type RequestOptions = RequestInit & {
   token?: string;
 };
@@ -83,6 +130,142 @@ async function request<T>(path: string, options: RequestOptions = {}) {
   }
 
   return response.json() as Promise<T>;
+}
+
+function normalizeOrderRecord(raw: any): OrderRecord {
+  return {
+    id: String(raw?.id ?? ""),
+    publicCode: raw?.publicCode ? String(raw.publicCode) : undefined,
+    status: String(raw?.status ?? "PENDING"),
+    total: Number(raw?.total ?? 0),
+    createdAt: String(raw?.createdAt ?? new Date().toISOString()),
+    estimatedMinutes: Number(raw?.estimatedMinutes ?? 35),
+    paymentMethod: String(raw?.paymentMethod ?? "PIX"),
+    paymentStatus: String(raw?.paymentStatus ?? "PENDING"),
+    user: raw?.user
+      ? {
+          name: String(raw.user.name ?? "Cliente"),
+          phone: raw.user.phone ? String(raw.user.phone) : undefined
+        }
+      : undefined,
+    address: raw?.address
+      ? {
+          street: String(raw.address.street ?? ""),
+          number: String(raw.address.number ?? ""),
+          complement: raw.address.complement ? String(raw.address.complement) : undefined,
+          referencePoint: raw.address.referencePoint ? String(raw.address.referencePoint) : undefined,
+          neighborhood: String(raw.address.neighborhood ?? ""),
+          city: String(raw.address.city ?? ""),
+          state: String(raw.address.state ?? ""),
+          zipCode: raw.address.zipCode ? String(raw.address.zipCode) : undefined
+        }
+      : null,
+    items: Array.isArray(raw?.items)
+      ? raw.items.map((item: any, index: number) => ({
+          id: String(item?.id ?? `${raw?.id ?? "order"}-${index}`),
+          productName: String(item?.productName ?? "Item"),
+          quantity: Number(item?.quantity ?? 0),
+          unitPrice: Number(item?.unitPrice ?? 0),
+          selectedSize: item?.selectedSize
+            ? {
+                name: item.selectedSize.name ? String(item.selectedSize.name) : undefined,
+                price: item.selectedSize.price ? Number(item.selectedSize.price) : undefined
+              }
+            : undefined,
+          selectedAddOns: Array.isArray(item?.selectedAddOns)
+            ? item.selectedAddOns.map((addOn: any) => ({
+                name: addOn?.name ? String(addOn.name) : undefined,
+                price: addOn?.price ? Number(addOn.price) : undefined
+              }))
+            : [],
+          notes: item?.notes ? String(item.notes) : undefined
+        }))
+      : []
+  };
+}
+
+function getLocalOrders() {
+  try {
+    const raw = localStorage.getItem(LOCAL_ORDERS_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.map(normalizeOrderRecord).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
+}
+
+function persistLocalOrders(orders: OrderRecord[]) {
+  localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(orders));
+}
+
+function buildLocalDashboardSummary(orders: OrderRecord[]): DashboardSummary {
+  const activeOrders = orders.filter((order) => order.status !== "CANCELED");
+  const revenue = activeOrders.reduce((total, order) => total + Number(order.total ?? 0), 0);
+  const pendingOrders = activeOrders.filter((order) => ["PENDING", "CONFIRMED", "PREPARING"].includes(order.status)).length;
+  const paymentBreakdownMap = new Map<string, { method: string; ordersCount: number; revenue: number }>();
+  const revenueByDateMap = new Map<string, { date: string; ordersCount: number; revenue: number; profit: number }>();
+  const topProductsMap = new Map<string, { name: string; quantity: number }>();
+  const customers = new Set<string>();
+
+  activeOrders.forEach((order) => {
+    const paymentMethod = order.paymentMethod || "PIX";
+    const paymentBreakdown = paymentBreakdownMap.get(paymentMethod) ?? {
+      method: paymentMethod,
+      ordersCount: 0,
+      revenue: 0
+    };
+
+    paymentBreakdown.ordersCount += 1;
+    paymentBreakdown.revenue += Number(order.total ?? 0);
+    paymentBreakdownMap.set(paymentMethod, paymentBreakdown);
+
+    const dateKey = String(order.createdAt ?? "").slice(0, 10);
+    const revenueByDate = revenueByDateMap.get(dateKey) ?? {
+      date: dateKey,
+      ordersCount: 0,
+      revenue: 0,
+      profit: 0
+    };
+
+    revenueByDate.ordersCount += 1;
+    revenueByDate.revenue += Number(order.total ?? 0);
+    revenueByDateMap.set(dateKey, revenueByDate);
+
+    if (order.user?.phone || order.user?.name) {
+      customers.add(String(order.user?.phone ?? order.user?.name));
+    }
+
+    order.items.forEach((item) => {
+      const current = topProductsMap.get(item.productName) ?? {
+        name: item.productName,
+        quantity: 0
+      };
+
+      current.quantity += Number(item.quantity ?? 0);
+      topProductsMap.set(item.productName, current);
+    });
+  });
+
+  return {
+    metrics: {
+      revenue,
+      profit: 0,
+      productCost: 0,
+      ordersCount: activeOrders.length,
+      customersCount: customers.size,
+      productsCount: 0,
+      pendingOrders
+    },
+    recentOrders: activeOrders.slice(0, 6),
+    lowStockProducts: [],
+    topProducts: Array.from(topProductsMap.values()).sort((a, b) => b.quantity - a.quantity).slice(0, 5),
+    paymentBreakdown: Array.from(paymentBreakdownMap.values()).sort((a, b) => b.ordersCount - a.ordersCount),
+    revenueByDate: Array.from(revenueByDateMap.values()).sort((a, b) => b.date.localeCompare(a.date))
+  };
 }
 
 export function getStoredToken() {
@@ -116,19 +299,42 @@ export async function loginAdmin(payload: { email: string; password: string }) {
 }
 
 export async function getDashboardSummary(token: string) {
-  return request<DashboardSummary>("/dashboard/summary", { token });
+  try {
+    return await request<DashboardSummary>("/dashboard/summary", { token });
+  } catch {
+    return buildLocalDashboardSummary(getLocalOrders());
+  }
 }
 
 export async function getOrders(token: string) {
-  return request<OrderRecord[]>("/orders", { token });
+  try {
+    return await request<OrderRecord[]>("/orders", { token });
+  } catch {
+    return getLocalOrders();
+  }
 }
 
 export async function updateOrderStatus(token: string, orderId: string, status: string) {
-  return request(`/orders/${orderId}/status`, {
-    method: "PATCH",
-    token,
-    body: JSON.stringify({ status })
-  });
+  try {
+    return await request(`/orders/${orderId}/status`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ status })
+    });
+  } catch {
+    const nextOrders = getLocalOrders().map((order) =>
+      order.id === orderId
+        ? {
+            ...order,
+            status,
+            paymentStatus: status === "DELIVERED" ? "PAID" : order.paymentStatus
+          }
+        : order
+    );
+
+    persistLocalOrders(nextOrders);
+    return nextOrders.find((order) => order.id === orderId);
+  }
 }
 
 export async function getProducts(token: string) {
@@ -183,71 +389,41 @@ export async function createBanner(token: string, payload: Record<string, any>) 
   });
 }
 
-export const fallbackDashboard: DashboardSummary = {
-  metrics: {
-    revenue: 8420.5,
-    profit: 3918.7,
-    productCost: 2850.35,
-    ordersCount: 138,
-    customersCount: 94,
-    productsCount: 18,
-    pendingOrders: 7
-  },
-  recentOrders: [
-    {
-      id: "fortin-demo-001",
-      status: "OUT_FOR_DELIVERY",
-      total: 42.4,
-      createdAt: new Date().toISOString(),
-      estimatedMinutes: 18,
-      paymentMethod: "PIX",
-      paymentStatus: "PAID",
-      items: [{ id: "item-1", productName: "Fortin Signature", quantity: 1 }]
+export async function getWhatsAppConnection(token: string) {
+  try {
+    return await request<WhatsAppConnection>("/whatsapp/connection", { token });
+  } catch {
+    if (isRemotePanelPointingToLocalApi()) {
+      return {
+        configured: false,
+        connected: false,
+        status: "api_inacessivel",
+        apiUrl: API_URL,
+        qrCodeDataUrl: null,
+        lastUpdatedAt: null,
+        lastError: "O painel publicado esta apontando para http://localhost:3333/api. Em uma pagina HTTPS do Netlify o navegador bloqueia essa chamada local.",
+        instructions: [
+          "Para testar agora, abra o painel localmente na mesma maquina do Docker.",
+          "Para funcionar no site publicado, publique a API em HTTPS e configure VITE_API_URL no build."
+        ]
+      } satisfies WhatsAppConnection;
     }
-  ],
-  lowStockProducts: [
-    { id: "prod-low", name: "Fit Purple", stockQuantity: 8 },
-    { id: "prod-low-2", name: "Paçoca Blast", stockQuantity: 5 }
-  ],
-  topProducts: [
-    { name: "Fortin Signature", quantity: 39 },
-    { name: "Fit Purple", quantity: 24 },
-    { name: "Morango Supreme", quantity: 19 }
-  ],
-  paymentBreakdown: [
-    { method: "PIX", ordersCount: 84, revenue: 5220.3 },
-    { method: "CARD", ordersCount: 39, revenue: 2360.1 },
-    { method: "CASH", ordersCount: 15, revenue: 840.1 }
-  ],
-  revenueByDate: [
-    { date: new Date().toISOString().slice(0, 10), ordersCount: 18, revenue: 1280.4, profit: 612.8 },
-    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), ordersCount: 14, revenue: 980.2, profit: 431.5 }
-  ]
-};
 
-export const fallbackOrders: OrderRecord[] = [
-  {
-    id: "fortin-order-001",
-    publicCode: "FRT-0001",
-    status: "PREPARING",
-    total: 34.9,
-    createdAt: new Date().toISOString(),
-    estimatedMinutes: 23,
-    paymentMethod: "PIX",
-    paymentStatus: "PAID",
-    user: {
-      name: "Cliente Demo",
-      phone: "11988887777"
-    },
-    items: [
-      {
-        id: "i1",
-        productName: "Fortin Signature",
-        quantity: 1,
-        unitPrice: 34.9,
-        selectedSize: { name: "700ml", price: 31.9 },
-        selectedAddOns: [{ name: "Granola artesanal", price: 3.5 }]
-      }
-    ]
+    return {
+      configured: false,
+      connected: false,
+      status: "offline",
+      apiUrl: API_URL,
+      qrCodeDataUrl: null,
+      lastUpdatedAt: null,
+      lastError: "Nao foi possivel consultar o servico do WhatsApp.",
+      instructions: [
+        "Verifique se a URL da API do painel esta correta e acessivel neste navegador.",
+        "Se o painel estiver publicado, a API e o chatbot precisam estar publicados em HTTPS."
+      ]
+    } satisfies WhatsAppConnection;
   }
-];
+}
+
+export const fallbackDashboard: DashboardSummary = buildLocalDashboardSummary([]);
+export const fallbackOrders: OrderRecord[] = [];
