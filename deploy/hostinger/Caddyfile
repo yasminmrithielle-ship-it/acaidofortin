@@ -1,0 +1,31 @@
+{$APP_DOMAIN} {
+	encode gzip zstd
+
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy api:3333
+	}
+
+	@docs path /docs /docs/*
+	handle @docs {
+		reverse_proxy api:3333
+	}
+
+	@socket path /socket.io /socket.io/*
+	handle @socket {
+		reverse_proxy api:3333
+	}
+
+	@admin path /admin /admin/*
+	handle @admin {
+		root * /srv
+		try_files {path} /admin/index.html
+		file_server
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

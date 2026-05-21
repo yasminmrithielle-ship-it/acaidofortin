@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.netlify
+.env
+.env.local
+.env.hostinger
+*.log
+deploy-*.zip
+android-apk/assets
+android-apk/build
+chatbot-fortin/sessions

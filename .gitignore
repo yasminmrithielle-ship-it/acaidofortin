@@ -8,6 +8,7 @@ build
 *.tsbuildinfo
 .env
 .env.local
+.env.hostinger
 coverage
 services/api/generated
 apps/mobile/.expo

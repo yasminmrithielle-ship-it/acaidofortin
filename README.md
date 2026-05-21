@@ -199,3 +199,47 @@ As bases de integração já estão previstas no código, mas exigem credenciais
 - O projeto foi estruturado como base escalável e organizada para evolução rápida.
 - O app mobile e o painel admin possuem fallback local para facilitar demonstração visual mesmo sem backend ativo.
 - O backend foi pensado para ser o contrato principal de produção.
+## Deploy na Hostinger VPS
+
+Para publicar a aplicacao completa na Hostinger, use VPS. Hospedagem compartilhada serve apenas para frontend estatico e nao cobre a API Node, PostgreSQL e o chatbot com Chromium.
+
+### Arquivos de deploy
+
+- `docker-compose.hostinger.yml`
+- `deploy/hostinger/Dockerfile`
+- `deploy/hostinger/Caddyfile`
+- `.env.hostinger.example`
+
+### Passos
+
+1. Copie `.env.hostinger.example` para `.env.hostinger`.
+2. Preencha `APP_DOMAIN` com o dominio final, por exemplo `acai.seudominio.com`.
+3. Defina senhas fortes em `POSTGRES_PASSWORD`, `JWT_SECRET` e `WHATSAPP_BOT_SECRET`.
+4. Aponte o DNS do dominio para o IP da VPS.
+5. Na VPS, rode:
+
+```bash
+docker compose --env-file .env.hostinger -f docker-compose.hostinger.yml up -d --build
+```
+
+Ou use o script:
+
+```bash
+npm run docker:hostinger
+```
+
+### O que essa configuracao faz
+
+- publica o frontend cliente em `/`
+- publica o painel admin em `/admin`
+- publica a API em `/api`
+- publica o Swagger em `/docs`
+- emite HTTPS automaticamente via Caddy
+- mantem `postgres` e `chatbot` acessiveis apenas dentro da rede Docker
+
+### Observacoes de producao
+
+- O build web usa `https://APP_DOMAIN/api` automaticamente.
+- O `FRONTEND_ORIGIN` da API passa a ser `https://APP_DOMAIN`.
+- O container `tunnel` nao e usado na Hostinger.
+- Se voce quiser usar apenas o site estatico em hospedagem compartilhada, rode `npm run build:web` e publique a pasta `dist`, mas a API e o WhatsApp ficarao de fora.
